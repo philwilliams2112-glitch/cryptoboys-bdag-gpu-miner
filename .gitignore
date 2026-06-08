@@ -1,0 +1,33 @@
+# Compiled binaries
+*.exe
+*.obj
+*.o
+*.a
+*.dll
+
+# OpenCL headers downloaded at build time
+opencl-headers/
+
+# MinGW / toolchain downloaded at build time
+mingw*/
+mingw-*/
+
+# Build artifacts
+*.log
+*.err.log
+
+# Installed instance (separate from installer source)
+C:\dagtech-gpu-miner\
+
+# Dev / internal files — not part of the installer distribution
+git-push.bat
+BUGFIXES-*.md
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+dashboard/logo_b64.txt
+
+# Local dev
+.claude/

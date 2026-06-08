@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DagTech GPU Miner — Windows Installer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 820px; margin: 40px auto; padding: 0 20px; color: #222; line-height: 1.6; }
+    h1 { color: #1a1a2e; }
+    h2 { color: #16213e; margin-top: 2em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    h3 { color: #16213e; margin-top: 1.4em; }
+    code, pre { background: #f4f4f4; border-radius: 4px; padding: 2px 6px; font-family: Consolas, monospace; font-size: 0.95em; }
+    pre { padding: 12px; overflow-x: auto; line-height: 1.5; }
+    .note  { background: #fff8e1; border-left: 4px solid #f9a825; padding: 10px 14px; margin: 1em 0; }
+    .warn  { background: #fdecea; border-left: 4px solid #e53935; padding: 10px 14px; margin: 1em 0; }
+    .good  { background: #e8f5e9; border-left: 4px solid #43a047; padding: 10px 14px; margin: 1em 0; }
+    table { border-collapse: collapse; width: 100%; margin: 0.5em 0; }
+    td, th { border: 1px solid #ddd; padding: 8px 12px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; font-weight: 600; }
+    ul, ol { margin: 0.4em 0 0.8em 0; padding-left: 1.4em; }
+    li { margin-bottom: 4px; }
+    a { color: #1565c0; }
+  </style>
+</head>
+<body>
+
+  <h1>DagTech GPU Miner &mdash; Windows Installer</h1>
+  <p>Installs the DagTech GPU Miner on Windows. Supports NVIDIA, AMD, and Intel GPUs via OpenCL.
+     CPU mining runs in parallel. A local control server and dashboard are included.</p>
+
+  <h2>Quick Start</h2>
+  <ol>
+    <li>Right-click <code>install-gpu-miner.bat</code> &rarr; <strong>Run as administrator</strong></li>
+    <li>Enter your wallet address, pool host, and worker name when prompted</li>
+    <li>Choose a start mode (see below)</li>
+    <li>Open the dashboard at <strong><a href="http://127.0.0.1:8883">http://127.0.0.1:8883</a></strong> while mining</li>
+  </ol>
+
+  <h2>Desktop Shortcuts</h2>
+  <p>All shortcuts are placed inside a <strong>Miner Shortcuts</strong> folder on your Desktop.</p>
+  <table>
+    <tr><th>Shortcut</th><th>Action</th></tr>
+    <tr><td><code>DagTech GPU Miner</code></td><td>Start mining</td></tr>
+    <tr><td><code>DagTech GPU Miner - Stop</code></td><td>Stop mining gracefully</td></tr>
+    <tr><td><code>DagTech GPU Miner - Force Stop</code></td><td>Kill all miner processes immediately (use if Stop hangs)</td></tr>
+    <tr><td><code>DagTech GPU Miner - Logs</code></td><td>Open live log terminal</td></tr>
+    <tr><td><code>DagTech GPU Miner - Restart Control</code></td><td>Restart the dashboard server (also applies pending updates)</td></tr>
+    <tr><td><code>DagTech GPU Miner - Uninstall</code></td><td>Remove the miner completely</td></tr>
+  </table>
+
+  <h2>Start Modes</h2>
+  <table>
+    <tr><th>Mode</th><th>When it starts</th><th>Best for</th></tr>
+    <tr><td><strong>Service</strong></td><td>At boot, runs as SYSTEM (no login required)</td><td>Dedicated mining machines</td></tr>
+    <tr><td><strong>Login</strong></td><td>When you log in, runs as your user</td><td>Workstations where you want to see the log window</td></tr>
+    <tr><td><strong>Manual</strong></td><td>Only when you double-click the desktop shortcut</td><td>Occasional mining</td></tr>
+  </table>
+  <p>Re-run the installer to change start mode at any time.</p>
+
+  <h2>Dashboard</h2>
+  <p>Open <strong><a href="http://127.0.0.1:8883">http://127.0.0.1:8883</a></strong> in any browser while the miner is running.</p>
+  <ul>
+    <li>Live CPU and GPU hashrate (shown separately)</li>
+    <li>Share counts (submitted / accepted / rejected / stale)</li>
+    <li>Pool connection status and current difficulty</li>
+    <li>Config editor — change settings without editing files manually</li>
+    <li>Update button — downloads and applies the latest version from GitHub</li>
+    <li>Live log viewer</li>
+  </ul>
+  <p>If the dashboard is blank after an update, use <strong>Restart Control</strong> and refresh.</p>
+
+  <h2>Files and Folders</h2>
+  <table>
+    <tr><th>Path</th><th>Contents</th></tr>
+    <tr><td><code>C:\dagtech-gpu-miner\config.env</code></td><td>All miner settings — edit here or via the dashboard Config panel</td></tr>
+    <tr><td><code>C:\dagtech-gpu-miner\logs\</code></td><td>Daily log files (<code>miner_YYYY-MM-DD.log</code>)</td></tr>
+    <tr><td><code>C:\dagtech-gpu-miner\bin\</code></td><td>Miner binary, control server, and launcher scripts</td></tr>
+    <tr><td><code>C:\dagtech-gpu-miner\dashboard\</code></td><td>Dashboard HTML and assets</td></tr>
+  </table>
+
+  <h2>Configuration Reference</h2>
+  <p>Edit <code>C:\dagtech-gpu-miner\config.env</code> in Notepad, or use the dashboard Config panel. Restart the miner after saving.</p>
+  <table>
+    <tr><th>Key</th><th>Description</th></tr>
+    <tr><td><code>WALLET</code></td><td>Your BlockDAG wallet address (<code>0x...</code>)</td></tr>
+    <tr><td><code>WORKER_NAME</code></td><td>Label shown for this machine on the pool — use a unique name per machine</td></tr>
+    <tr><td><code>POOL_HOST</code></td><td>Mining pool hostname or IP address</td></tr>
+    <tr><td><code>POOL_PORT</code></td><td>Mining pool stratum port</td></tr>
+    <tr><td><code>POOL_PASSWORD</code></td><td>Pool password (usually <code>1234</code> or <code>x</code> — not used by most pools)</td></tr>
+    <tr><td><code>MINING_MODE</code></td><td><code>both</code> (CPU + GPU), <code>gpu</code>, or <code>cpu</code></td></tr>
+    <tr><td><code>THREADS</code></td><td>Number of CPU threads to use</td></tr>
+    <tr><td><code>CPU_LIMIT</code></td><td>CPU usage cap as a percentage (e.g. <code>50</code> = use at most half a core per thread)</td></tr>
+    <tr><td><code>GPU_ENABLED</code></td><td><code>1</code> to enable GPU mining, <code>0</code> to disable</td></tr>
+    <tr><td><code>GPU_INTENSITY</code></td><td>GPU workload size 0&ndash;100. Higher = more VRAM used = more hashes. Set by the installer automatically based on detected VRAM.</td></tr>
+    <tr><td><code>GPU_THROTTLE</code></td><td>GPU duty cycle limit 5&ndash;100. <code>80</code> = GPU runs at 80% max, reducing heat and power draw.</td></tr>
+    <tr><td><code>GPU_PLATFORM</code></td><td>OpenCL platform index. Auto-detected on first run — if GPU shows 0 H/s after 90 seconds, the miner switches to platform <code>1</code> automatically.</td></tr>
+    <tr><td><code>GPU_DEVICE</code></td><td>OpenCL device index within the platform. Usually <code>0</code>. Set to <code>1</code> if you have multiple GPUs and the wrong one is being used.</td></tr>
+    <tr><td><code>WATCHDOG_RESTART_DELAY</code></td><td>Seconds the miner must be down before the first auto-restart (default <code>60</code>)</td></tr>
+    <tr><td><code>WATCHDOG_RETRY_INTERVAL</code></td><td>Seconds between subsequent restart attempts (default <code>300</code>)</td></tr>
+    <tr><td><code>WATCHDOG_MAX_RETRIES</code></td><td>Max restart attempts before giving up. <code>0</code> = unlimited (default)</td></tr>
+    <tr><td><code>START_MODE</code></td><td><code>service</code>, <code>login</code>, or <code>manual</code></td></tr>
+  </table>
+
+  <h2>Updating</h2>
+  <p>Open the dashboard at <a href="http://127.0.0.1:8883">http://127.0.0.1:8883</a>, click <strong>Update</strong>, and confirm.
+     The control server downloads the latest version, applies it, and restarts. The miner keeps running during the update.</p>
+
+  <div class="note">
+    <strong>If the dashboard is unreachable after a failed update</strong>, replace the control script manually in an elevated PowerShell window:
+    <pre><code>$url = "https://raw.githubusercontent.com/danvandamme/blockdag-GPU-miner-installer/main/dagtech-control.ps1"
+Invoke-WebRequest $url -OutFile "C:\dagtech-gpu-miner\bin\dagtech-control.ps1" -UseBasicParsing
+Restart-ScheduledTask "DagTech GPU Miner"</code></pre>
+  </div>
+
+  <h2>Troubleshooting</h2>
+
+  <h3>GPU shows 0 H/s</h3>
+  <div class="good">
+    <strong>Auto-detected.</strong> The miner checks GPU hashrate 90 seconds after starting.
+    If GPU is 0 H/s but CPU is running, it automatically writes <code>GPU_PLATFORM=1</code> to
+    <code>config.env</code> and restarts. Watch the dashboard log for a
+    <em>&ldquo;Watchdog: GPU hashrate is 0 H/s &hellip; switching to GPU_PLATFORM=1&rdquo;</em> message.
+  </div>
+  <p>If GPU is still 0 H/s after a second start, open <code>config.env</code> and try
+     <code>GPU_PLATFORM=2</code>. On AMD systems, Intel integrated graphics is often platform 0
+     and the Radeon card is platform 1 or 2.</p>
+
+  <h3>No OpenCL platforms found</h3>
+  <p>Windows maintains a registry list at
+     <code>HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors</code> that tells the OpenCL loader
+     which GPU driver DLLs to use. If this list is empty (common after driver updates or clean
+     Windows installs), the miner cannot find any GPU and reports 0 H/s or an OpenCL error.</p>
+  <p><strong>The installer fixes this automatically.</strong> If the problem persists, re-run
+     <code>install-gpu-miner.bat</code> as Administrator. If you need to fix it without reinstalling,
+     run the appropriate script below in an elevated PowerShell window.</p>
+
+  <h4>NVIDIA</h4>
+  <pre><code>$dll = Get-ChildItem "C:\Windows\System32\DriverStore\FileRepository" `
+    -Recurse -Filter "nvopencl64.dll" -ErrorAction SilentlyContinue |
+    Select-Object -First 1 -ExpandProperty FullName
+if ($dll) {
+    New-Item -Path "HKLM:\SOFTWARE\Khronos\OpenCL\Vendors" -Force | Out-Null
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\OpenCL\Vendors" `
+        -Name $dll -Value 0 -PropertyType DWORD -Force
+    Write-Host "Done: $dll"
+} else {
+    Write-Host "nvopencl64.dll not found - reinstall your NVIDIA drivers."
+}</code></pre>
+
+  <h4>AMD</h4>
+  <pre><code>$dll = Get-ChildItem "C:\Windows\System32" -Filter "amdocl64.dll" -ErrorAction SilentlyContinue |
+    Select-Object -First 1 -ExpandProperty FullName
+if (-not $dll) {
+    $dll = Get-ChildItem "C:\Windows\System32\DriverStore\FileRepository" `
+        -Recurse -Filter "amdocl64.dll" -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+if ($dll) {
+    New-Item -Path "HKLM:\SOFTWARE\Khronos\OpenCL\Vendors" -Force | Out-Null
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\OpenCL\Vendors" `
+        -Name $dll -Value 0 -PropertyType DWORD -Force
+    Write-Host "Done: $dll"
+} else {
+    Write-Host "amdocl64.dll not found - reinstall AMD Radeon Software from amd.com/support"
+}</code></pre>
+
+  <h3>GPU intensity — crashes or out of memory</h3>
+  <p>If the miner crashes or the GPU shows errors, <code>GPU_INTENSITY</code> may be too high for your VRAM.
+     Lower it in steps of 10 in <code>config.env</code> until stable. The installer sets a recommended
+     value based on detected VRAM (~75% usage). If VRAM detection was inaccurate, start at <code>30</code>
+     and increase gradually.</p>
+
+  <h3>Miner not starting after reboot (service mode)</h3>
+  <ol>
+    <li>Open <strong>Task Scheduler</strong> (search in Start Menu)</li>
+    <li>Find <strong>DagTech GPU Miner</strong> in the task list</li>
+    <li>Check the status is <strong>Ready</strong> and last run result is <code>0x0</code></li>
+    <li>If the task is missing, re-run the installer and choose <strong>Service</strong> mode</li>
+  </ol>
+
+  <h3>Dashboard not loading</h3>
+  <ol>
+    <li>Check that the miner is running — look for <code>powershell.exe</code> and <code>dagtech-gpu-miner.exe</code> in Task Manager</li>
+    <li>Use the <strong>Restart Control</strong> desktop shortcut and try <a href="http://127.0.0.1:8883">http://127.0.0.1:8883</a> again</li>
+    <li>Check <code>C:\dagtech-gpu-miner\logs\</code> for errors</li>
+  </ol>
+
+  <h3>Antivirus blocking the miner</h3>
+  <p>Mining software is frequently flagged as a false positive. Add an exclusion rather than allowing
+     individual detections — exclusions persist across updates.</p>
+  <p><strong>Windows Defender</strong> — handled automatically by the installer. If the binary is removed anyway:</p>
+  <ol>
+    <li>Open <strong>Windows Security &rarr; Virus &amp; threat protection &rarr; Protection history</strong></li>
+    <li>Find the quarantined item and select <strong>Allow</strong></li>
+    <li>Re-run the installer to restore the binary</li>
+  </ol>
+  <p>To add Defender exclusions manually (elevated PowerShell):</p>
+  <pre><code>Add-MpPreference -ExclusionPath "C:\dagtech-gpu-miner"
+Add-MpPreference -ExclusionProcess "C:\dagtech-gpu-miner\bin\dagtech-gpu-miner.exe"</code></pre>
+  <p><strong>ESET and other third-party AV</strong> &mdash; add <code>C:\dagtech-gpu-miner</code> as a folder exclusion in your AV settings. Restore any quarantined files before re-running the installer.</p>
+
+  <div class="warn">
+    If the miner binary is quarantined, the watchdog auto-restart will fail silently because the <code>.exe</code> is missing.
+    Always check the AV quarantine first if the miner stops and does not restart on its own.
+  </div>
+
+  <h2>Uninstall</h2>
+  <p>Double-click the <strong>DagTech GPU Miner - Uninstall</strong> desktop shortcut, or run:</p>
+  <pre><code>C:\dagtech-gpu-miner\bin\dagtech-uninstall.bat</code></pre>
+  <p>This stops the miner, removes the scheduled task, deletes all installed files, and removes the desktop shortcuts.</p>
+
+  <script type="application/json" id="agent-metadata">
+  {"document_type":"installer_guide","platform":"windows","installer":"install-gpu-miner.bat"}
+  </script>
+
+</body>
+</html>

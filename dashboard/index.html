@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockDAG GPU Miner</title>
+    <style>
+        /* ============================================
+         * CryptoBoys GPU Miner Dashboard
+         * Modern redesign 2026
+         * ============================================ */
+
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg-primary: #edf1fb;
+            --bg-card: rgba(255, 255, 255, 0.72);
+            --bg-card-hover: rgba(255, 255, 255, 0.92);
+            --border-color: rgba(140, 170, 255, 0.22);
+            --border-glow: rgba(120, 160, 255, 0.5);
+            --text-primary: #1a2148;
+            --text-secondary: #4a5a8a;
+            --text-dim: #8a99c4;
+            --blue-primary: #5b8fff;
+            --blue-light: #88aaff;
+            --blue-dark: #3366dd;
+            --blue-bg: rgba(91, 143, 255, 0.08);
+            --blue-accent: rgba(91, 143, 255, 0.16);
+            --gpu-primary: #a07aff;
+            --gpu-bg: rgba(160, 122, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Soft heavenly background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 90% 60% at 15% -10%, rgba(180,210,255,0.55) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 50% at 85% 110%,  rgba(210,185,255,0.4) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 40% at 50% 50%,   rgba(255,240,200,0.2) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Subtle dot grid */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(100,140,255,0.12) 1px, transparent 1px);
+            background-size: 36px 36px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 24px;
+            margin: 0 -24px 28px;
+            border-bottom: 1px solid rgba(150, 180, 255, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(237, 241, 251, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon-wrap {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            background: #d8e2ff;
+            border: 1.5px solid rgba(160,185,255,0.45);
+            box-shadow: 0 4px 16px rgba(100,130,255,0.15), 0 1px 4px rgba(0,0,0,0.06);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            mix-blend-mode: screen;
+            display: block;
+        }
+
+        .logo h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .logo p {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .status-badge.online {
+            background: rgba(91,143,255,0.12);
+            color: var(--blue-dark);
+            border: 1px solid rgba(91,143,255,0.3);
+        }
+
+        .status-badge.offline {
+            background: rgba(140,155,200,0.1);
+            color: var(--text-dim);
+            border: 1px solid rgba(140,155,200,0.2);
+        }
+
+        .pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--blue-primary);
+            box-shadow: 0 0 6px var(--blue-primary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .pulse-off {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text-dim);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px var(--blue-primary); }
+            50% { opacity: 0.5; transform: scale(0.75); box-shadow: none; }
+        }
+
+        /* Stats Grid */
+        .stats-row {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .stats-row:last-of-type { margin-bottom: 20px; }
+        .stats-row-5 { grid-template-columns: repeat(5, 1fr); }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 18px;
+            transition: all 0.22s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Soft top accent strip */
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--blue-primary), var(--gpu-primary), transparent 70%);
+            opacity: 0.5;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(140,170,255,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(100,130,255,0.12), 0 0 0 1px rgba(140,170,255,0.15);
+        }
+
+        .stat-card-blocks {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+        }
+        .stat-card-blocks::before {
+            background: linear-gradient(90deg, hsl(142,72%,50%), transparent 70%);
+            opacity: 0.25;
+        }
+        .stat-card-blocks.blocks-found {
+            border-color: rgba(0,210,120,0.4);
+            background: rgba(0,210,120,0.05);
+            box-shadow: 0 0 30px rgba(0,210,120,0.1);
+        }
+        .blocks-icon { font-size: 20px; flex-shrink: 0; }
+        .blocks-main { flex: 1; }
+        .blocks-count {
+            font-family: 'Space Grotesk', 'SF Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .blocks-count.green { color: hsl(142, 72%, 55%); }
+        .blocks-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+        .blocks-recent { font-size: 12px; color: var(--text-secondary); text-align: right; }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-family: 'Space Grotesk', 'SF Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .stat-value.blue   { color: var(--blue-dark); }
+        .stat-value.purple { color: #7c52d4; }
+        .stat-value.green  { color: #2a9e6a; }
+        .stat-value.yellow { color: #b87d00; }
+        .stat-value.red    { color: #d94455; }
+
+        .stat-unit { font-size: 14px; color: var(--text-secondary); font-weight: 400; }
+        .stat-sub  { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+        /* Hashrate Chart */
+        .chart-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 22px 24px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #7aaaff, #b08aff, transparent 70%);
+            opacity: 0.7;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .chart-title { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; }
+
+        .chart-container { width: 100%; height: 220px; position: relative; }
+        canvas { width: 100% !important; height: 100% !important; }
+
+        /* Info Grid */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 14px;
+            margin-bottom: 24px;
+            align-items: stretch;
+        }
+        .bottom-row .log-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .bottom-row .log-section .log-console {
+            flex: 1;
+            max-height: 200px;
+            min-height: 120px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .info-card h3 {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 14px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 13px;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--text-dim); }
+        .info-value { color: var(--text-primary); font-family: 'SF Mono', monospace; font-size: 12px; }
+
+        /* Log Console */
+        .log-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .log-section h3 {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 14px;
+        }
+        .log-console {
+            background: rgba(220,230,255,0.35);
+            border-radius: 10px;
+            border: 1px solid rgba(140,170,255,0.2);
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 11.5px;
+            line-height: 1.65;
+        }
+        .log-console::-webkit-scrollbar { width: 4px; }
+        .log-console::-webkit-scrollbar-track { background: transparent; }
+        .log-console::-webkit-scrollbar-thumb { background: rgba(100,140,255,0.2); border-radius: 2px; }
+        .log-entry       { color: var(--text-dim); }
+        .log-entry.share { color: var(--blue-dark); }
+        .log-entry.cpu   { color: #2a9e6a; }
+        .log-entry.gpu   { color: #7c52d4; }
+        .log-entry.error { color: #d94455; }
+        .log-entry.job   { color: var(--text-secondary); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0.03em;
+            border-top: 1px solid var(--border-color);
+        }
+        .footer a { color: var(--blue-primary); text-decoration: none; }
+        .footer a:hover { color: var(--blue-light); }
+
+        /* Responsive */
+        @media (max-width: 1100px) { .stats-row-5 { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px)  { .bottom-row  { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .stats-row-5 { grid-template-columns: repeat(2, 1fr); }
+            .stat-value { font-size: 20px; }
+            .header { flex-direction: column; gap: 12px; }
+        }
+
+        /* Control buttons */
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .btn-update { background: #f0faf5; color: #2a9e6a; }
+        .btn-update:hover { background: #e0f5ec; }
+        .btn-update.checking { opacity: 0.5; cursor: default; pointer-events: none; }
+        /* Update modal */
+        #updateModal .update-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px;
+        }
+        #updateModal .update-row:last-of-type { border-bottom: none; }
+        #updateModal .update-label { color: var(--text-secondary); }
+        #updateModal .update-val   { color: var(--text-primary); font-weight: 500; }
+        #updateModal .update-val.new-ver { color: #10b981; }
+        #updateModal .update-val.same-ver { color: var(--text-dim); }
+        #updateModal .update-status {
+            margin-top: 14px; padding: 10px 14px; border-radius: 8px;
+            font-size: 12px; background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.2); color: var(--text-secondary);
+            min-height: 36px; word-break: break-word;
+        }
+        #updateModal .update-status.ok   { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); color: #10b981; }
+        #updateModal .update-status.err  { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.25);  color: #ef4444; }
+        #updateModal .update-actions { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+        #updateModal .update-actions button { flex: 1; min-width: 120px; }
+        .control-btn {
+            padding: 7px 13px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.18s ease;
+            font-family: inherit;
+            letter-spacing: 0.02em;
+            position: relative;
+            /* Gold frame via pseudo-element gradient border */
+        }
+        /* Gold Dubai frame */
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            inset: -1.5px;
+            border-radius: 9.5px;
+            background: linear-gradient(135deg,
+                #f5e17a, #c8922a, #f0d060, #a06810, #f5e17a, #c8922a);
+            background-size: 200% 200%;
+            animation: goldShimmer 4s linear infinite;
+            z-index: -1;
+        }
+        @keyframes goldShimmer {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .control-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .btn-start   { background: #f0faf5; color: #2a9e6a; }
+        .btn-start:hover:not(:disabled)   { background: #e0f5ec; box-shadow: 0 4px 14px rgba(60,190,120,0.2); }
+        .btn-stop    { background: #fef2f3; color: #d94455; }
+        .btn-stop:hover:not(:disabled)    { background: #fde8ea; box-shadow: 0 4px 14px rgba(240,80,90,0.18); }
+        .btn-restart { background: #fefaf0; color: #b87d00; }
+        .btn-restart:hover:not(:disabled) { background: #fdf4dc; box-shadow: 0 4px 14px rgba(230,160,0,0.15); }
+
+        /* Offline banner */
+        .offline-banner {
+            display: none;
+            background: rgba(220,80,90,0.07);
+            border: 1px solid rgba(220,80,90,0.2);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #c03040;
+            align-items: center;
+            gap: 10px;
+        }
+        .offline-banner.visible { display: flex; }
+        .offline-banner span { color: var(--text-secondary); }
+
+        .btn-config { background: #f0f4ff; color: var(--blue-dark); }
+        .btn-config:hover { background: #e4ecff; }
+        .btn-logs   { background: #f0fafa; color: #1a8080; }
+        .btn-logs:hover { background: #e2f5f5; }
+
+        /* Config modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: rgba(245, 248, 255, 0.97);
+            border: 1px solid rgba(150,180,255,0.35);
+            border-radius: 18px;
+            padding: 28px 30px 24px;
+            width: 100%;
+            max-width: 520px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(80,110,255,0.14), 0 0 0 1px rgba(150,180,255,0.2);
+        }
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            /* Extend scroll area to modal edges so the scrollbar sits flush */
+            margin-right: -18px;
+            padding-right: 14px;
+        }
+        .modal-body::-webkit-scrollbar { width: 4px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+        .modal-body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+        .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 22px; color: var(--text-primary); flex-shrink: 0; font-family: 'Space Grotesk', sans-serif; }
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 5px;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            padding: 9px 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus { border-color: var(--blue-primary); box-shadow: 0 0 0 3px rgba(0,195,255,0.1); }
+        /* Pool profile select — light background so option text is always readable */
+        #poolProfileSelect {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: rgba(255,255,255,0.18);
+        }
+        #poolProfileSelect:focus { border-color: var(--blue-primary); }
+        #poolProfileSelect option {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+        #poolProfileSelect optgroup {
+            background: #e2e8f0;
+            color: #334155;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        #poolProfileSelect option:hover,
+        #poolProfileSelect option:checked {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+        .mode-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+        .mode-btn {
+            padding: 9px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s, color 0.2s;
+            line-height: 1.4;
+        }
+        .mode-btn:hover { border-color: var(--border-glow); color: var(--text-primary); }
+        .mode-btn.active {
+            border-color: var(--gpu-primary);
+            background: hsla(270, 80%, 65%, 0.12);
+            color: var(--gpu-primary);
+        }
+
+        .modal-footer { display: flex; align-items: center; gap: 10px; margin-top: 22px; flex-shrink: 0; }
+        .modal-status { flex: 1; font-size: 13px; color: var(--text-secondary); min-height: 18px; }
+        .btn-modal-cancel {
+            padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border-color);
+            background: transparent; color: var(--text-secondary); cursor: pointer;
+            font-family: inherit; font-size: 13px; transition: border-color 0.2s;
+        }
+        .btn-modal-cancel:hover { border-color: var(--border-glow); }
+        .btn-modal-save {
+            padding: 8px 20px; border-radius: 9px; border: none;
+            background: linear-gradient(135deg, #7aaaff, #5b8fff);
+            color: #fff; cursor: pointer;
+            font-family: inherit; font-size: 13px; font-weight: 600;
+            transition: opacity 0.18s, box-shadow 0.18s;
+            box-shadow: 0 4px 18px rgba(91,143,255,0.35);
+        }
+        .btn-modal-save:hover:not(:disabled) { opacity: 0.88; box-shadow: 0 6px 28px rgba(91,143,255,0.5); }
+        .btn-modal-save:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+        /* GPU sliders (intensity / throttle) */
+        .intensity-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+        .slider-wrap {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .intensity-slider {
+            width: 100%;
+            accent-color: var(--gpu-primary);
+            cursor: pointer;
+            margin: 0;
+        }
+        .rec-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(to right, hsl(142,65%,32%), hsl(142,65%,45%));
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 0 6px hsla(142,65%,40%,0.45);
+            pointer-events: none;
+            transition: width 0.25s ease;
+        }
+        .intensity-label {
+            font-size: 13px;
+            font-family: 'SF Mono', monospace;
+            color: var(--gpu-primary);
+            min-width: 24px;
+            text-align: right;
+        }
+
+        /* Log modal */
+        .modal-wide { max-width: 820px; }
+        .log-modal-console {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 12px 14px;
+            height: 460px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* Pool connection dot */
+        .pool-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.4s, box-shadow 0.4s;
+            background: var(--text-dim);
+        }
+        .pool-dot.connected    { background: #2a9e6a; box-shadow: 0 0 6px rgba(42,158,106,0.5); }
+        .pool-dot.connecting,
+        .pool-dot.reconnecting { background: #b87d00; }
+        .pool-dot.disconnected { background: #d94455; box-shadow: 0 0 6px rgba(217,68,85,0.4); }
+
+</style>
+</head>
+<body>
+    <!-- Empty wallet warning banner -->
+    <div id="walletWarningBanner" style="display:none;position:sticky;top:0;z-index:90;background:rgba(120,40,10,0.95);backdrop-filter:blur(8px);border-bottom:1px solid rgba(234,88,12,0.45);color:#fed7aa;font-size:13px;font-weight:500;padding:9px 18px;text-align:center;letter-spacing:0.01em;">
+        &#9888; <strong>Wallet address is not set.</strong>
+        Mining is disabled — shares will be rejected by the pool.
+        <a href="#" onclick="openConfig();return false;" style="color:#fdba74;margin-left:8px;text-decoration:underline;">Open Config to fix this</a>
+    </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon-wrap">
+                    <img class="logo-icon" src="cryptoboys-logo.ico" alt="CryptoBoys Logo">
+                </div>
+                <div>
+                    <h1>BlockDAG Miner</h1>
+                    <p style="background: linear-gradient(135deg, #f5e17a, #c8922a, #f0d060, #a06810, #f5e17a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600; letter-spacing: 0.06em;">CRYPTO BOYS — GPU EDITION</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="control-btn btn-update" id="btnUpdate" onclick="openUpdate()" title="Check for software updates">&#8593; Update</button>
+                <button class="control-btn btn-logs" onclick="openLogs()" title="Open live log window">&#9776; Logs</button>
+                <button class="control-btn btn-config" onclick="openConfig()" title="Configure miner">&#9881; Config</button>
+                <button class="control-btn btn-start"   id="btnStart"   onclick="controlMiner('start')"   title="Start miner">&#9654; Start</button>
+                <button class="control-btn btn-stop"    id="btnStop"    onclick="controlMiner('stop')"    title="Stop miner">&#9646;&#9646; Stop</button>
+                <button class="control-btn btn-restart" id="btnRestart" onclick="controlMiner('restart')" title="Restart miner">&#8635; Restart</button>
+                <div class="status-badge offline" id="statusBadge">
+                    <div class="pulse-off" id="statusPulse"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offline banner -->
+        <div class="offline-banner" id="offlineBanner">
+            &#9888; Miner offline &mdash; <span id="offlineSince"></span>
+        </div>
+
+        <!-- Config Modal -->
+        <div class="modal-overlay" id="configModal" onclick="if(event.target===this)closeConfig()">
+            <div class="modal">
+                <div class="modal-title">&#9881; GPU Miner Configuration</div>
+                <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Wallet Address</label>
+                    <input class="form-input" id="cfgWallet" type="text" placeholder="your_wallet_address" spellcheck="false" autocomplete="off">
+                </div>
+                <!-- Pool Profiles -->
+                <div style="margin-top:4px;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border-color)">
+                    <div class="form-label" style="margin-bottom:8px;opacity:.65;">&#128190; Pool Profiles <span style="font-weight:400;opacity:.8;">— saved in browser</span></div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <select id="poolProfileSelect" class="form-input" style="flex:1;font-size:12px;padding:6px 8px">
+                            <option value="">— select a saved profile —</option>
+                        </select>
+                        <button class="btn-modal-cancel" onclick="loadPoolProfile()" title="Load into fields below" style="padding:6px 11px;white-space:nowrap">Load</button>
+                        <button class="btn-modal-cancel" onclick="deletePoolProfile()" title="Delete selected profile" style="padding:6px 10px;color:#ef4444;border-color:rgba(239,68,68,0.25)">&#x1F5D1;</button>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;margin-top:7px">
+                        <input class="form-input" id="poolProfileName" type="text" placeholder="Profile name — e.g. DagTech Main" style="flex:1;font-size:12px;padding:6px 8px" spellcheck="false" maxlength="40" onkeydown="if(event.key==='Enter')savePoolProfile()">
+                        <button class="btn-modal-cancel" onclick="savePoolProfile()" title="Save current host / port / worker as a named profile" style="padding:6px 11px;white-space:nowrap">Save</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Pool Host</label>
+                        <input class="form-input" id="cfgPoolHost" type="text" placeholder="pool.dagtech.network" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pool Port</label>
+                        <input class="form-input" id="cfgPoolPort" type="number" placeholder="3333" min="1" max="65535">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Worker Name</label>
+                        <input class="form-input" id="cfgWorker" type="text" placeholder="rig1" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pool Password</label>
+                        <input class="form-input" id="cfgPassword" type="text" placeholder="leave blank if none" spellcheck="false" autocomplete="off">
+                    </div>
+                </div>
+                <div id="cpuControlsSection" style="transition:opacity 0.2s;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">CPU Threads</label>
+                        <input class="form-input" id="cfgThreads" type="number" placeholder="4" min="1" max="256">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPU Limit %</label>
+                        <input class="form-input" id="cfgCpuLimit" type="number" placeholder="100" min="1" max="100" title="Throttle CPU usage per thread (1-100%).">
+                    </div>
+                </div>
+                </div><!-- /#cpuControlsSection -->
+                <div id="gpuControlsSection" style="transition:opacity 0.2s;">
+                <div class="form-group" id="gpuDeviceSection">
+                    <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
+                        <span>GPU Devices</span>
+                        <span id="gpuDetectedCount" style="font-size:11px;font-weight:400;color:var(--text-dim);"></span>
+                    </label>
+                    <div id="gpuDeviceList" style="margin-top:6px;display:flex;flex-direction:column;gap:5px;min-height:26px;">
+                        <span style="font-size:12px;color:var(--text-dim);">Detecting GPUs…</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">VRAM / Work Size <span style="font-size:10px;opacity:0.55;font-weight:400;">(GPU_INTENSITY)</span></label>
+                    <div class="intensity-row">
+                        <div class="slider-wrap">
+                            <input class="intensity-slider" type="range" id="cfgGpuIntensity" min="0" max="100" value="80"
+                                   list="intensityTicks"
+                                   oninput="document.getElementById('intensityVal').textContent=this.value; document.getElementById('intensityRecBadge').style.display=(gpuRecIntensity>=0&&parseInt(this.value)===gpuRecIntensity?'inline':'none'); updateIntensityHint(parseInt(this.value))">
+                            <div class="rec-bar" id="intensityRecBar"></div>
+                        </div>
+                        <datalist id="intensityTicks"><option value="80" id="intensityTickRec"></datalist>
+                        <span class="intensity-label" id="intensityVal">80</span>
+                        <span id="intensityRecBadge" style="font-size:10px;color:hsl(142,72%,55%);font-weight:700;white-space:nowrap;padding:2px 5px;border-radius:4px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);">&#10003; Rec</span>
+                    </div>
+                    <div id="intensityHint" style="margin-top:7px;font-size:11px;line-height:1.5;padding:7px 10px;border-radius:6px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);"></div>
+                </div>
+                <div class="form-group" style="margin-top:14px;">
+                    <label class="form-label">GPU Core Throttle % <span style="font-size:10px;opacity:0.55;font-weight:400;">(100% = full speed)</span></label>
+                    <div class="intensity-row">
+                        <input class="intensity-slider" type="range" id="cfgGpuThrottle" min="5" max="100" value="100"
+                               style="accent-color:hsl(142,60%,45%)"
+                               oninput="document.getElementById('throttleVal').textContent=this.value+'%'; updateThrottleHint(this.value)">
+                        <span class="intensity-label" id="throttleVal">100%</span>
+                    </div>
+                    <div id="throttleHint" style="margin-top:7px;font-size:11px;line-height:1.5;padding:7px 10px;border-radius:6px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);"></div>
+                </div>
+                </div><!-- /#gpuControlsSection -->
+                <div class="form-group">
+                    <label class="form-label">Mining Mode</label>
+                    <div class="mode-group">
+                        <button class="mode-btn" id="modeCpu"  data-mode="cpu"  onclick="setMode('cpu')">&#128187; CPU Only</button>
+                        <button class="mode-btn" id="modeGpu"  data-mode="gpu"  onclick="setMode('gpu')">&#127918; GPU Only</button>
+                        <button class="mode-btn active" id="modeBoth" data-mode="both" onclick="setMode('both')">&#9889; CPU + GPU</button>
+                    </div>
+                </div>
+                <div class="form-row" style="border-top:1px solid var(--border-color);padding-top:14px;margin-top:6px">
+                    <div class="form-group">
+                        <label class="form-label">Metrics Port <span style="font-size:10px;opacity:0.55;font-weight:400;">(read-only)</span></label>
+                        <input class="form-input" id="cfgMetricsPort" type="text" readonly tabindex="-1"
+                               style="opacity:0.6;cursor:default;" title="Set by installer — HTTP metrics API used by the node dashboard">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dashboard Port <span style="font-size:10px;opacity:0.55;font-weight:400;">(read-only)</span></label>
+                        <input class="form-input" id="cfgDashPort" type="text" readonly tabindex="-1"
+                               style="opacity:0.6;cursor:default;" title="Set by installer — this control server dashboard">
+                    </div>
+                </div>
+                <div class="form-group" style="border-top:1px solid var(--border-color);padding-top:14px;margin-top:6px">
+                    <label class="form-label">Start Mode</label>
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1">
+                            <button class="mode-btn" id="smService" onclick="setStartMode('service')">&#9881; System Service</button>
+                            <button class="mode-btn" id="smLogin"   onclick="setStartMode('login')">&#128100; At Login</button>
+                            <button class="mode-btn" id="smManual"  onclick="setStartMode('manual')">&#128070; Manual Only</button>
+                        </div>
+                        <button class="btn-modal-cancel" id="btnSwitchMode" onclick="switchMode()" style="white-space:nowrap;flex-shrink:0">Apply</button>
+                    </div>
+                    <div id="startModeHint" style="margin-top:8px;font-size:12px;color:var(--text-dim);line-height:1.5;min-height:16px"></div>
+                </div>
+                </div><!-- /.modal-body -->
+                <div class="modal-footer">
+                    <div class="modal-status" id="configStatus"></div>
+                    <button class="btn-modal-cancel" onclick="closeConfig()">Cancel</button>
+                    <button class="btn-modal-save" id="btnSaveConfig" onclick="saveConfig()">Save &amp; Restart</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Modal -->
+        <div class="modal-overlay" id="logModal" onclick="if(event.target===this)closeLogs()">
+            <div class="modal modal-wide">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                    <div class="modal-title" style="margin-bottom:0">&#9776; Miner Log</div>
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <span style="font-size:11px;color:var(--text-dim)" id="logTimestamp"></span>
+                        <button class="btn-modal-cancel" onclick="closeLogs()">&#10005; Close</button>
+                    </div>
+                </div>
+                <div class="log-modal-console" id="logModalConsole"><span style="color:var(--text-dim)">Loading...</span></div>
+            </div>
+        </div>
+
+        <!-- Update Modal -->
+        <div class="modal-overlay" id="updateModal" onclick="if(event.target===this)closeUpdate()">
+            <div class="modal" style="max-width:420px">
+                <div class="modal-title">&#8593; Software Update</div>
+                <div class="update-row">
+                    <span class="update-label">Current version</span>
+                    <span class="update-val" id="updCurrentVer">—</span>
+                </div>
+                <div class="update-row">
+                    <span class="update-label">Latest version</span>
+                    <span class="update-val" id="updLatestVer">Checking…</span>
+                </div>
+                <div class="update-status" id="updStatus">Fetching version info…</div>
+                <div class="update-actions">
+                    <button class="form-btn" id="btnApplyUpdate" onclick="applyUpdate()" style="display:none">&#8595; Apply Update</button>
+                    <button class="form-btn" id="btnRestartServer" onclick="restartControlServer()" style="display:none;background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);color:#f59e0b">&#8635; Restart Control Server</button>
+                    <button class="form-btn form-btn-cancel" onclick="closeUpdate()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hashrate Chart -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <span class="chart-title">Hashrate History</span>
+                <span style="font-size: 12px; color: var(--text-dim)" id="chartTime">Last 10 minutes</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="hashrateChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Main Stats -->
+
+        <!-- Top row: Hash Rate · Submitted · Accepted · Rejected · Stale -->
+        <div class="stats-row stats-row-5">
+            <div class="stat-card">
+                <div class="stat-label">Total Hash Rate</div>
+                <div class="stat-value blue" id="hashrate">0.0 <span class="stat-unit">H/s</span></div>
+                <div class="stat-sub" id="hashrateSubTotal"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Shares Submitted</div>
+                <div class="stat-value" id="submitted">0</div>
+                <div class="stat-sub" id="rejected">0 rejected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Shares Accepted</div>
+                <div class="stat-value" id="accepted">0</div>
+                <div class="stat-sub" id="acceptRate">0% accept rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Shares Rejected</div>
+                <div class="stat-value" id="stale">0</div>
+                <div class="stat-sub" id="staleRate">0% of submitted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Stale Shares</div>
+                <div class="stat-value" id="staleCount">0</div>
+                <div class="stat-sub" id="staleCountRate">0% of submitted</div>
+            </div>
+        </div>
+
+        <!-- Middle row: CPU/GPU Hash Rate · CPU/GPU Shares · Last Share · Uptime · Node Connection -->
+        <div class="stats-row stats-row-5">
+            <div class="stat-card">
+                <div class="stat-label">CPU / GPU Hash Rate</div>
+                <div style="display:flex;gap:18px;align-items:flex-start;margin-top:4px;">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">CPU</div>
+                        <div class="stat-value green" id="cpuHashrateVal" style="font-size:18px;">-- <span class="stat-unit">H/s</span></div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">GPU</div>
+                        <div class="stat-value purple" id="gpuHashrateVal" style="font-size:18px;">-- <span class="stat-unit">H/s</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">CPU / GPU Shares</div>
+                <div style="display:flex;gap:18px;align-items:flex-start;margin-top:4px;">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">CPU</div>
+                        <div class="stat-value green" id="cpuSharesAccepted" style="font-size:18px;">--</div>
+                        <div id="cpuSharesSub" style="font-size:11px;color:var(--text-dim);margin-top:2px;">-- submitted</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">GPU</div>
+                        <div class="stat-value purple" id="gpuSharesAccepted" style="font-size:18px;">--</div>
+                        <div id="gpuSharesSub" style="font-size:11px;color:var(--text-dim);margin-top:2px;">-- submitted</div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Share</div>
+                <div class="stat-value" id="lastShareAge">--</div>
+                <div class="stat-sub" id="lastShareTime">No share yet</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Uptime</div>
+                <div class="stat-value" id="uptime">0:00</div>
+                <div class="stat-sub" id="totalHashes">0 total hashes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pool Connection <span style="font-size:10px;opacity:.5;font-weight:400;">(stratum)</span></div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                    <div class="pool-dot" id="poolConnDot"></div>
+                    <div class="stat-value" id="poolConnStatus" style="font-size:18px;color:var(--text-dim);">--</div>
+                </div>
+                <div class="stat-sub" id="poolConnSub"></div>
+                <div id="lastJobStaleness" style="display:none;margin-top:5px;font-size:11px;padding:3px 7px;border-radius:4px;background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3);">
+                    ⚠ No new job in <span id="lastJobAge"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom row: Memory · CPU Usage · CPU Temp · GPU Usage · GPU Temp -->
+        <div class="stats-row stats-row-5">
+            <div class="stat-card">
+                <div class="stat-label">Memory Usage</div>
+                <div class="stat-value" id="memUsage">-- <span class="stat-unit">MB</span></div>
+                <div class="stat-sub" id="memStatus">No data from miner</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">CPU Usage</div>
+                <div class="stat-value" id="cpuUsage">-- <span class="stat-unit">%</span></div>
+                <div class="stat-sub" id="cpuUsageStatus">No data from miner</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">CPU Temp</div>
+                <div class="stat-value" id="cpuTemp">-- <span class="stat-unit">°C</span></div>
+                <div class="stat-sub" id="cpuTempStatus">No data from miner</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">GPU Usage</div>
+                <div class="stat-value purple" id="gpuUsage">-- <span class="stat-unit">%</span></div>
+                <div class="stat-sub" id="gpuUsageName"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">GPU Temp</div>
+                <div class="stat-value purple" id="gpuTemp">-- <span class="stat-unit">°C</span></div>
+                <div class="stat-sub" id="gpuTempStatus">Waiting...</div>
+            </div>
+        </div>
+
+        <!-- Blocks Found -->
+        <div class="stats-row" style="margin-bottom:12px;">
+            <div class="stat-card stat-card-blocks" id="blocksFoundCard">
+                <div class="blocks-icon">&#x1F4B0;</div>
+                <div class="blocks-main">
+                    <div class="blocks-count" id="blocksFoundCount">0</div>
+                    <div class="blocks-sub">Blocks found this session</div>
+                </div>
+                <div class="blocks-recent" id="blocksFoundRecent"></div>
+            </div>
+        </div>
+
+        <!-- System + Activity Log -->
+        <div class="bottom-row">
+            <div class="info-card">
+                <h3>System</h3>
+                <div class="info-row"><span class="info-label">Miner Version</span><span class="info-value" id="version">--</span></div>
+                <div class="info-row"><span class="info-label">Algorithm</span><span class="info-value">Scrypt-DT</span></div>
+                <div class="info-row"><span class="info-label">Difficulty</span><span class="info-value" id="difficulty">--</span></div>
+                <div class="info-row"><span class="info-label">Current Job</span><span class="info-value" id="jobId">--</span></div>
+                <div class="info-row" style="align-items:center;">
+                    <span class="info-label">Wallet</span>
+                    <span style="display:flex;align-items:center;gap:6px;min-width:0;">
+                        <span class="info-value" id="walletAddr" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;" title="">--</span>
+                        <button id="btnCopyWallet" onclick="copyWallet()" title="Copy wallet address" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text-dim);padding:2px 4px;border-radius:4px;font-size:13px;line-height:1;transition:color 0.15s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-dim)'">&#x2398;</button>
+                    </span>
+                </div>
+            </div>
+            <div class="log-section">
+                <h3>Activity Log</h3>
+                <div class="log-console" id="logConsole">
+                    <div class="log-entry">DagTech GPU Dashboard initialized...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Original DagTech GPU Mining Suite v1.0.0 &middot; By Dawie Nel / DagTech Ltd
+            &middot; <a href="https://dagtech.network" target="_blank">dagtech.network</a>
+            <br>Modified by Dan Van Damme
+        </div>
+    </div>
+
+    <script>
+        /* ============================================
+         * DagTech GPU Dashboard - Real-time Monitor
+         * Copyright (c) 2024-2026 DagTech Ltd / Dawie Nel
+         * ============================================ */
+
+        const METRICS_URL   = 'http://127.0.0.1:8883/metrics';
+        const CONTROL_URL   = 'http://127.0.0.1:8883';
+        const POLL_INTERVAL = 5000;
+        // Per-GPU VRAM recommendation (populated from config when modal opens)
+        let gpuRecIntensity = -1;   // -1 = unknown / not stored yet
+        let gpuVramMb       = 0;
+        const MAX_CHART_POINTS = 120;
+        const CACHE_KEY = 'dagtech_gpu_last_metrics';
+
+        let hashrateHistory = [];
+        let isConnected = false;
+        let startMode = 'service';
+        let lastAccepted = 0;
+        let lastRejected = 0;
+        let lastUptime = 0;
+        let lastShareTimestamp = null;
+        let lastCpuSharesFound = null;   // null = not yet initialised (first poll)
+        let lastGpuSharesFound = null;
+
+        const els = {
+            hashrate:      document.getElementById('hashrate'),
+            accepted:      document.getElementById('accepted'),
+            submitted:     document.getElementById('submitted'),
+            uptime:        document.getElementById('uptime'),
+            acceptRate:    document.getElementById('acceptRate'),
+            rejected:      document.getElementById('rejected'),
+            totalHashes:   document.getElementById('totalHashes'),
+            poolAddr:      document.getElementById('poolAddr'),
+            walletAddr:    document.getElementById('walletAddr'),
+            difficulty:    document.getElementById('difficulty'),
+            jobId:         document.getElementById('jobId'),
+            version:       document.getElementById('version'),
+            threads:       document.getElementById('threads'),
+            statusBadge:   document.getElementById('statusBadge'),
+            statusText:    document.getElementById('statusText'),
+            statusPulse:   document.getElementById('statusPulse'),
+            logConsole:    document.getElementById('logConsole'),
+        };
+
+        function copyWallet() {
+            const addr = document.getElementById('walletAddr')?.textContent?.trim();
+            if (!addr || addr === '--') return;
+            navigator.clipboard.writeText(addr).then(() => {
+                const btn = document.getElementById('btnCopyWallet');
+                if (!btn) return;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '&#x2713;';
+                btn.style.color = 'hsl(142,72%,50%)';
+                setTimeout(() => { btn.innerHTML = orig; btn.style.color = 'var(--text-dim)'; }, 1500);
+            }).catch(() => {});
+        }
+
+        function formatUptime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            if (h > 0) return `${h}h ${m}m`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        function formatNumber(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return n.toString();
+        }
+
+        // Returns { value: '1.23', unit: 'KH/s', html: '1.23 <span class="stat-unit">KH/s</span>' }
+        function formatHashrate(h) {
+            if (h === null || h === undefined || h === '' || isNaN(h)) {
+                return { value: '--', unit: 'H/s', html: '-- <span class="stat-unit">H/s</span>', text: '-- H/s' };
+            }
+            h = Number(h);   // control server emits hashrate as a quoted string; coerce so .toFixed() works
+            let value, unit;
+            if      (h >= 1e12) { value = (h / 1e12).toFixed(2); unit = 'TH/s'; }
+            else if (h >= 1e9)  { value = (h / 1e9 ).toFixed(2); unit = 'GH/s'; }
+            else if (h >= 1e6)  { value = (h / 1e6 ).toFixed(2); unit = 'MH/s'; }
+            else if (h >= 1e3)  { value = (h / 1e3 ).toFixed(2); unit = 'KH/s'; }
+            else                { value = h.toFixed(1);           unit = 'H/s';  }
+            return {
+                value,
+                unit,
+                html: `${value} <span class="stat-unit">${unit}</span>`,
+                text: `${value} ${unit}`
+            };
+        }
+
+        function addLog(msg, type = '') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (type ? ' ' + type : '');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            els.logConsole.appendChild(entry);
+            els.logConsole.scrollTop = els.logConsole.scrollHeight;
+            while (els.logConsole.children.length > 100) els.logConsole.removeChild(els.logConsole.firstChild);
+        }
+
+        function setOnline(online, label) {
+            const prev = isConnected;
+            isConnected = online;
+            if (online) {
+                els.statusBadge.className = 'status-badge online';
+                els.statusPulse.className = 'pulse';
+                els.statusText.textContent = 'Mining';
+                document.getElementById('offlineBanner').classList.remove('visible');
+                if (!prev) addLog('Connected to GPU miner', 'share');
+            } else {
+                els.statusBadge.className = 'status-badge offline';
+                els.statusPulse.className = 'pulse-off';
+                els.statusText.textContent = label || 'Stopped';
+                showOfflineBanner(!label);   // !label → true when deliberately stopped, false when unreachable
+                if (prev) addLog(label ? 'Lost connection to miner' : 'Miner stopped', label ? 'error' : '');
+            }
+        }
+
+        function showOfflineBanner(stopped) {
+            const banner = document.getElementById('offlineBanner');
+            const since  = document.getElementById('offlineSince');
+            banner.classList.add('visible');
+            if (stopped) {
+                since.textContent = 'miner process is not running — click Start to resume';
+            } else {
+                const cached = getCachedMetrics();
+                if (cached) {
+                    const ago = Math.floor((Date.now() - cached.cachedAt) / 1000);
+                    const m = Math.floor(ago / 60), s = ago % 60;
+                    since.textContent = `control server unreachable — last data ${m > 0 ? m + 'm ' : ''}${s}s ago`;
+                } else {
+                    since.textContent = 'control server unreachable';
+                }
+            }
+        }
+
+        function getCachedMetrics() {
+            try { return JSON.parse(localStorage.getItem(CACHE_KEY)); } catch { return null; }
+        }
+
+        function setCachedMetrics(data) {
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, cachedAt: Date.now() })); } catch {}
+        }
+
+        function applyMetrics(data) {
+            lastAccepted = data.accepted;
+            lastUptime   = data.uptime;
+            els.hashrate.innerHTML   = formatHashrate(data.hashrate).html;
+            els.accepted.textContent  = data.accepted;
+            els.submitted.textContent = data.submitted;
+            els.uptime.textContent    = formatUptime(data.uptime);
+            els.totalHashes.textContent = formatNumber(data.total_hashes) + ' total hashes';
+            const rate = data.submitted > 0 ? ((data.accepted / data.submitted) * 100).toFixed(1) : '0.0';
+            els.acceptRate.textContent = rate + '% accept rate';
+            els.rejected.textContent   = data.rejected + ' rejected';
+            if (els.poolAddr)   els.poolAddr.textContent   = data.pool;
+            if (els.walletAddr && data.wallet) {
+                els.walletAddr.textContent  = data.wallet;
+                els.walletAddr.title        = data.wallet;
+            }
+            // Show/hide empty-wallet banner
+            const banner = document.getElementById('walletWarningBanner');
+            if (banner) banner.style.display = data.wallet ? 'none' : 'block';
+
+            // Pool stratum connection indicator
+            const connDot = document.getElementById('poolConnDot');
+            const connTxt = document.getElementById('poolConnStatus');
+            const connSub = document.getElementById('poolConnSub');
+            if (connDot && connTxt) {
+                const s = data.pool_status || 'unknown';
+                connDot.className = 'pool-dot ' + s;
+                const labels = { connected: 'Connected', connecting: 'Connecting…',
+                                 reconnecting: 'Reconnecting…', disconnected: 'Disconnected', unknown: '--' };
+                const colors = { connected: 'hsl(142,72%,50%)', connecting: 'hsl(45,100%,55%)',
+                                 reconnecting: 'hsl(25,100%,55%)', disconnected: '#f87171', unknown: 'var(--text-dim)' };
+                connTxt.textContent  = labels[s] || s;
+                connTxt.style.color  = colors[s]  || 'var(--text-dim)';
+                if (connSub) connSub.textContent = data.pool || '';
+            }
+            // Job staleness warning — show if miner is running but no new job for >5 min
+            const staleEl = document.getElementById('lastJobStaleness');
+            const staleAge = document.getElementById('lastJobAge');
+            if (staleEl && data.last_job_secs_ago != null) {
+                const secs = data.last_job_secs_ago;
+                const stale = secs > 300 && data.running;
+                staleEl.style.display = stale ? 'block' : 'none';
+                if (stale && staleAge) {
+                    const m = Math.floor(secs / 60), s2 = secs % 60;
+                    staleAge.textContent = m > 0 ? `${m}m ${s2}s` : `${s2}s`;
+                }
+            } else if (staleEl) { staleEl.style.display = 'none'; }
+            els.difficulty.textContent = data.difficulty.toFixed(8);
+            els.jobId.textContent      = data.job_id || '--';
+            els.version.textContent    = data.version || '--';
+            if (els.threads) els.threads.textContent = data.threads;
+
+            // CPU / GPU per-source hashrate card
+            const cpuHrEl = document.getElementById('cpuHashrateVal');
+            const gpuHrEl = document.getElementById('gpuHashrateVal');
+            if (cpuHrEl) cpuHrEl.innerHTML = formatHashrate(data.cpu_hashrate || 0).html;
+            if (gpuHrEl) gpuHrEl.innerHTML = formatHashrate(data.gpu_hashrate || 0).html;
+
+            // CPU / GPU per-source shares card
+            const cpuAcc = data.cpu_accepted ?? null;
+            const gpuAcc = data.gpu_accepted ?? null;
+            const cpuAccEl = document.getElementById('cpuSharesAccepted');
+            const gpuAccEl = document.getElementById('gpuSharesAccepted');
+            const cpuSubEl = document.getElementById('cpuSharesSub');
+            const gpuSubEl = document.getElementById('gpuSharesSub');
+            if (cpuAccEl) cpuAccEl.textContent = cpuAcc !== null ? cpuAcc : '--';
+            if (gpuAccEl) gpuAccEl.textContent = gpuAcc !== null ? gpuAcc : '--';
+            if (cpuSubEl) {
+                const sub = data.cpu_submitted ?? null;
+                const rej = data.cpu_rejected || 0;
+                const stl = data.cpu_stale || 0;
+                cpuSubEl.textContent = sub !== null
+                    ? sub + ' sub' + (rej ? ' · ' + rej + ' rej' : '') + (stl ? ' · ' + stl + ' stale' : '')
+                    : '-- submitted';
+            }
+            if (gpuSubEl) {
+                const sub = data.gpu_submitted ?? null;
+                const rej = data.gpu_rejected || 0;
+                const stl = data.gpu_stale || 0;
+                gpuSubEl.textContent = sub !== null
+                    ? sub + ' sub' + (rej ? ' · ' + rej + ' rej' : '') + (stl ? ' · ' + stl + ' stale' : '')
+                    : '-- submitted';
+            }
+
+            // GPU info card
+            const ghEl = document.getElementById('gpuHashrateInfo');
+            if (ghEl) ghEl.textContent = formatHashrate(data.gpu_hashrate || 0).text;
+            const modeEl = document.getElementById('miningMode');
+            if (modeEl && data.mining_mode) {
+                const modes = { cpu: 'CPU Only', gpu: 'GPU Only', both: 'CPU + GPU' };
+                modeEl.textContent = modes[data.mining_mode] || data.mining_mode;
+            }
+            const intEl = document.getElementById('gpuIntensityInfo');
+            if (intEl && data.gpu_intensity !== undefined) intEl.textContent = data.gpu_intensity;
+            const thrEl = document.getElementById('gpuThrottleInfo');
+            if (thrEl && data.gpu_throttle !== undefined) thrEl.textContent = data.gpu_throttle + '%';
+
+            updateStale(data.rejected ?? 0, data.submitted);
+            updateStaleCount(data.stale ?? 0, data.submitted);
+
+            // Blocks found card
+            const blocksCount = data.blocks_found ?? data.blocks ?? 0;
+            const blocksEl    = document.getElementById('blocksFoundCount');
+            const blocksCard  = document.getElementById('blocksFoundCard');
+            const blocksRecent = document.getElementById('blocksFoundRecent');
+            if (blocksEl) {
+                blocksEl.textContent = blocksCount;
+                blocksEl.className   = blocksCount > 0 ? 'blocks-count green' : 'blocks-count';
+            }
+            if (blocksCard) {
+                blocksCard.classList.toggle('blocks-found', blocksCount > 0);
+            }
+            if (blocksRecent) {
+                if (data.last_block_time) {
+                    const d = new Date(data.last_block_time * 1000);
+                    blocksRecent.textContent = 'Last: ' + d.toLocaleTimeString();
+                } else if (blocksCount > 0) {
+                    blocksRecent.textContent = 'Block(s) found this session!';
+                } else {
+                    blocksRecent.textContent = 'No blocks yet';
+                }
+            }
+        }
+
+        // ── Miner controls ──────────────────────────────────────────
+
+        async function controlMiner(action) {
+            const btn = document.getElementById(
+                action === 'start' ? 'btnStart' : action === 'stop' ? 'btnStop' : 'btnRestart'
+            );
+            btn.disabled = true;
+            btn.textContent = action === 'restart' ? '⟳ ...' : action === 'start' ? '▶ ...' : '⏸ ...';
+            try {
+                const resp = await fetch(`${CONTROL_URL}/${action}`, { method: 'POST', signal: AbortSignal.timeout(5000) });
+                if (resp.ok) addLog(`Control: ${action} command sent`, 'share');
+                else addLog(`Control: server returned ${resp.status}`, 'error');
+            } catch (e) {
+                addLog('Control server unreachable (is dagtech-start running?)', 'error');
+            }
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = action === 'start' ? '▶ Start' : action === 'stop' ? '⏸ Stop' : '⟳ Restart';
+            }, 2000);
+        }
+
+        // ── Canvas chart ────────────────────────────────────────────
+
+        function drawChart() {
+            const canvas = document.getElementById('hashrateChart');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width  = rect.width  * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            const w = rect.width, h = rect.height;
+            const padding = { top: 10, right: 10, bottom: 30, left: 72 };
+            ctx.clearRect(0, 0, w, h);
+            if (hashrateHistory.length < 2) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '13px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Waiting for data...', w / 2, h / 2);
+                return;
+            }
+            const hasGpu = hashrateHistory.some(p => (p.gpu || 0) > 0);
+            const maxVal = Math.max(...hashrateHistory.flatMap(p => [p.total || p.value || 0, p.cpu || 0, p.gpu || 0]), 1) * 1.1;
+
+            // Size the left margin to the WIDEST y-axis label so it can never be
+            // clipped. The monospace font falls back differently across machines
+            // (SF Mono on Mac, Consolas/Courier on Windows), so measure it live
+            // rather than assuming a fixed width.
+            const Y_LABEL_GAP = 8;
+            ctx.font = '11px SF Mono, monospace';
+            let maxLabelW = 0;
+            for (let i = 0; i <= 4; i++) {
+                maxLabelW = Math.max(maxLabelW, ctx.measureText(formatHashrate(maxVal * (1 - i / 4)).text).width);
+            }
+            padding.left = Math.max(padding.left, Math.ceil(maxLabelW) + Y_LABEL_GAP + 6);
+            const chartW = w - padding.left - padding.right;
+            const chartH = h - padding.top  - padding.bottom;
+
+            // Grid lines + y-axis labels
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartH / 4) * i;
+                ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(w - padding.right, y); ctx.stroke();
+                const label = formatHashrate(maxVal * (1 - i / 4)).text;
+                ctx.fillStyle = '#64748b'; ctx.font = '11px SF Mono, monospace'; ctx.textAlign = 'right';
+                ctx.fillText(label, padding.left - Y_LABEL_GAP, y + 4);
+            }
+
+            // X-axis time labels — show ~5 evenly-spaced timestamps
+            if (hashrateHistory.length >= 2) {
+                const first = hashrateHistory[0].time;
+                const last  = hashrateHistory[hashrateHistory.length - 1].time;
+                const spanMs = last - first;
+                const xLabelCount = Math.min(5, hashrateHistory.length);
+                ctx.font = '10px SF Mono, monospace';
+                ctx.fillStyle = '#475569';
+                ctx.textAlign = 'center';
+                // Update chart time label
+                const spanSec = Math.round(spanMs / 1000);
+                const spanMin = Math.round(spanSec / 60);
+                const timeEl = document.getElementById('chartTime');
+                if (timeEl) timeEl.textContent = spanMin >= 2 ? `Last ${spanMin} minutes` : `Last ${spanSec}s`;
+                for (let i = 0; i < xLabelCount; i++) {
+                    const frac = i / (xLabelCount - 1);
+                    const ts   = first + frac * spanMs;
+                    const x    = padding.left + frac * chartW;
+                    const d    = new Date(ts);
+                    const hh   = d.getHours().toString().padStart(2, '0');
+                    const mm   = d.getMinutes().toString().padStart(2, '0');
+                    const ss   = d.getSeconds().toString().padStart(2, '0');
+                    ctx.fillText(`${hh}:${mm}:${ss}`, x, h - 6);
+                }
+            }
+
+            // Helper: draw one series line, optionally filled
+            function drawSeries(key, color, lineWidth, filled) {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                ctx.lineJoin = 'round';
+                hashrateHistory.forEach((point, i) => {
+                    const val = (point[key] !== undefined ? point[key] : point.value) || 0;
+                    const x = padding.left + (i / (hashrateHistory.length - 1)) * chartW;
+                    const y = padding.top + chartH - (val / maxVal) * chartH;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                if (filled) {
+                    ctx.lineTo(padding.left + chartW, padding.top + chartH);
+                    ctx.lineTo(padding.left, padding.top + chartH);
+                    ctx.closePath();
+                    const gr = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+                    gr.addColorStop(0, color.replace('hsl(', 'hsla(').replace(')', ', 0.12)'));
+                    gr.addColorStop(1, color.replace('hsl(', 'hsla(').replace(')', ', 0)'));
+                    ctx.fillStyle = gr; ctx.fill();
+                }
+            }
+
+            // Total (blue, filled area behind others)
+            drawSeries('total', 'hsl(210, 80%, 65%)', 2, true);
+
+            if (hasGpu) {
+                // CPU (green) and GPU (purple) as thinner lines on top
+                drawSeries('cpu', 'hsl(142, 72%, 50%)', 1.5, false);
+                drawSeries('gpu', 'hsl(270, 80%, 65%)', 1.5, false);
+
+                // Legend
+                const legend = [
+                    { label: 'Total', color: 'hsl(210, 80%, 65%)' },
+                    { label: 'CPU',   color: 'hsl(142, 72%, 50%)' },
+                    { label: 'GPU',   color: 'hsl(270, 80%, 65%)' }
+                ];
+                ctx.font = '11px Inter, sans-serif';
+                let lx = padding.left;
+                legend.forEach(item => {
+                    ctx.fillStyle = item.color;
+                    ctx.fillRect(lx, h - 20, 14, 2.5);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(item.label, lx + 18, h - 14);
+                    lx += 18 + ctx.measureText(item.label).width + 16;
+                });
+            } else {
+                ctx.fillStyle = '#64748b'; ctx.font = '11px Inter, sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('H/s', padding.left + chartW / 2, h - 5);
+            }
+        }
+
+        function timeAgo(ts) {
+            if (!ts) return '--';
+            const secs = Math.floor((Date.now() - ts) / 1000);
+            if (secs < 60) return `${secs}s ago`;
+            if (secs < 3600) return `${Math.floor(secs / 60)}m ${secs % 60}s ago`;
+            return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m ago`;
+        }
+
+        function refreshLastShareAge() {
+            if (!lastShareTimestamp) return;
+            document.getElementById('lastShareAge').textContent = timeAgo(lastShareTimestamp);
+        }
+
+        // ── Sysinfo (OS-level stats) ────────────────────────────────
+
+        async function fetchSysinfo() {
+            try {
+                const resp = await fetch(`${CONTROL_URL}/sysinfo`, { signal: AbortSignal.timeout(6000) });
+                if (!resp.ok) return;
+                const d = await resp.json();
+                updateCpuUsage(d.cpu_usage ?? null);
+                updateCpuTemp(d.cpu_temp ?? null);
+                updateMemory(
+                    d.mem_used_mb  != null ? d.mem_used_mb  * 1048576 : null,
+                    d.mem_total_mb != null ? d.mem_total_mb * 1048576 : null
+                );
+                // Pass full per-GPU array when available, fall back to single-GPU fields
+                updateGpu(d.gpu_temp ?? null, d.gpu_usage ?? null, d.gpu_name ?? null, d.gpu_vendor ?? null, d.gpus ?? null);
+            } catch (e) {}
+        }
+
+        function updateGpu(temp, usage, name, vendor, gpus) {
+            const tEl  = document.getElementById('gpuTemp');
+            const tSub = document.getElementById('gpuTempStatus');
+            const uEl  = document.getElementById('gpuUsage');
+            const uSub = document.getElementById('gpuUsageName');
+
+            // Multi-GPU: use hottest card for temp card, sum/avg for usage
+            if (gpus && gpus.length > 1) {
+                const maxTemp  = Math.max(...gpus.map(g => g.temp  ?? 0));
+                const avgUsage = gpus.reduce((s, g) => s + (g.usage ?? 0), 0) / gpus.length;
+                const hotCard  = gpus.find(g => (g.temp ?? 0) === maxTemp);
+
+                tEl.innerHTML = `${maxTemp.toFixed(1)} <span class="stat-unit">°C</span>`;
+                tEl.className = maxTemp < 65 ? 'stat-value green' : maxTemp < 80 ? 'stat-value yellow' : 'stat-value red';
+                // Sub-line: per-GPU breakdown
+                tSub.innerHTML = gpus.map(g =>
+                    `<span style="display:inline-block;margin-right:8px;">GPU${g.index}: ${g.temp != null ? g.temp.toFixed(0)+'°' : '--'}</span>`
+                ).join('');
+
+                uEl.innerHTML = `${avgUsage.toFixed(1)} <span class="stat-unit">%</span>`;
+                uEl.className = avgUsage < 70 ? 'stat-value green' : avgUsage < 90 ? 'stat-value yellow' : 'stat-value red';
+                uSub.innerHTML = gpus.map(g =>
+                    `<span style="display:inline-block;margin-right:8px;">GPU${g.index}: ${g.usage != null ? g.usage.toFixed(0)+'%' : '--'}</span>`
+                ).join('');
+                return;
+            }
+
+            // Single GPU (or no gpus array)
+            if (temp === null && usage === null) {
+                tEl.innerHTML = `-- <span class="stat-unit">°C</span>`; tEl.className = 'stat-value purple';
+                tSub.textContent = vendor === 'amd' ? 'AMD: temp needs HWiNFO64' : 'N/A';
+                uEl.innerHTML = `-- <span class="stat-unit">%</span>`; uEl.className = 'stat-value purple';
+                uSub.textContent = name ?? '';
+                return;
+            }
+            if (temp !== null) {
+                tEl.innerHTML = `${temp.toFixed(1)} <span class="stat-unit">°C</span>`;
+                tEl.className = temp < 65 ? 'stat-value green' : temp < 80 ? 'stat-value yellow' : 'stat-value red';
+                tSub.textContent = temp < 65 ? 'Normal' : temp < 80 ? 'Warm' : 'Hot - check cooling!';
+            } else {
+                tEl.innerHTML = `-- <span class="stat-unit">°C</span>`; tEl.className = 'stat-value purple'; tSub.textContent = 'Temp N/A';
+            }
+            if (usage !== null) {
+                uEl.innerHTML = `${usage.toFixed(1)} <span class="stat-unit">%</span>`;
+                uEl.className = usage < 70 ? 'stat-value green' : usage < 90 ? 'stat-value yellow' : 'stat-value red';
+            } else {
+                uEl.innerHTML = `-- <span class="stat-unit">%</span>`; uEl.className = 'stat-value purple';
+            }
+            uSub.textContent = name ?? '';
+        }
+
+        function updateCpuTemp(temp) {
+            const el = document.getElementById('cpuTemp');
+            const sub = document.getElementById('cpuTempStatus');
+            if (temp === undefined || temp === null) {
+                el.innerHTML = `-- <span class="stat-unit">°C</span>`; el.className = 'stat-value'; sub.textContent = 'No data from miner'; return;
+            }
+            el.innerHTML = `${temp.toFixed(1)} <span class="stat-unit">°C</span>`;
+            if (temp < 60) { el.className = 'stat-value green'; sub.textContent = 'Normal'; }
+            else if (temp < 75) { el.className = 'stat-value yellow'; sub.textContent = 'Warm — monitor closely'; }
+            else { el.className = 'stat-value red'; sub.textContent = 'Hot — check cooling!'; }
+        }
+
+        function updateStale(rejected, submitted) {
+            const el = document.getElementById('stale');
+            el.textContent = rejected ?? 0;
+            const pct = submitted > 0 ? ((rejected / submitted) * 100).toFixed(1) : '0.0';
+            el.className = pct > 20 ? 'stat-value red' : pct > 5 ? 'stat-value yellow' : 'stat-value';
+            document.getElementById('staleRate').textContent = `${pct}% of submitted`;
+        }
+
+        function updateStaleCount(stale, submitted) {
+            const el = document.getElementById('staleCount');
+            if (!el) return;
+            el.textContent = stale ?? 0;
+            const pct = submitted > 0 ? ((stale / submitted) * 100).toFixed(1) : '0.0';
+            el.className = pct > 5 ? 'stat-value yellow' : 'stat-value';
+            document.getElementById('staleCountRate').textContent = `${pct}% of submitted`;
+        }
+
+        function updateCpuUsage(pct) {
+            const el = document.getElementById('cpuUsage');
+            const sub = document.getElementById('cpuUsageStatus');
+            if (pct === undefined || pct === null) {
+                el.innerHTML = `-- <span class="stat-unit">%</span>`; el.className = 'stat-value'; sub.textContent = 'No data from miner'; return;
+            }
+            el.innerHTML = `${pct.toFixed(1)} <span class="stat-unit">%</span>`;
+            if (pct < 70) { el.className = 'stat-value green'; sub.textContent = 'Normal'; }
+            else if (pct < 90) { el.className = 'stat-value yellow'; sub.textContent = 'High load'; }
+            else { el.className = 'stat-value red'; sub.textContent = 'Very high — check threads'; }
+        }
+
+        function updateMemory(usedBytes, totalBytes) {
+            const el = document.getElementById('memUsage');
+            const sub = document.getElementById('memStatus');
+            if (usedBytes === undefined || usedBytes === null) {
+                el.innerHTML = `-- <span class="stat-unit">MB</span>`; el.className = 'stat-value'; sub.textContent = 'No data from miner'; return;
+            }
+            const usedMB = usedBytes / 1048576;
+            const totalMB = totalBytes ? totalBytes / 1048576 : null;
+            el.innerHTML = `${usedMB.toFixed(0)} <span class="stat-unit">MB</span>`;
+            if (totalMB) {
+                const pct = (usedMB / totalMB) * 100;
+                el.className = pct < 70 ? 'stat-value green' : pct < 88 ? 'stat-value yellow' : 'stat-value red';
+                sub.textContent = `${pct.toFixed(1)}% of ${totalMB.toFixed(0)} MB`;
+            } else { el.className = 'stat-value'; sub.textContent = `${usedMB.toFixed(0)} MB used`; }
+        }
+
+        // ── Main poll loop ──────────────────────────────────────────
+
+        async function fetchMetrics() {
+            try {
+                // /status has existed since v1 and is the authoritative source for
+                // whether the miner process is actually running. Fetch it in parallel
+                // with /metrics so we never rely on the control server version having
+                // the newer "running" field in the metrics response.
+                const [metricsResp, statusResp] = await Promise.all([
+                    fetch(METRICS_URL, { signal: AbortSignal.timeout(10000) }),
+                    fetch(`${CONTROL_URL}/status`, { signal: AbortSignal.timeout(10000) }).catch(() => null)
+                ]);
+
+                const data = await metricsResp.json();
+                // Control server serializes hashrates as quoted strings; coerce to
+                // numbers so the chart, history, and formatHashrate never choke.
+                data.hashrate     = Number(data.hashrate)     || 0;
+                data.cpu_hashrate = Number(data.cpu_hashrate) || 0;
+                data.gpu_hashrate = Number(data.gpu_hashrate) || 0;
+
+                // Determine running state from /status first, fall back to data.running
+                let isRunning = data.running !== false;
+                if (statusResp && statusResp.ok) {
+                    try {
+                        const st = await statusResp.json();
+                        isRunning = st.running === true;
+                        if (st.start_mode) startMode = st.start_mode;
+                    } catch {}
+                }
+
+                setOnline(isRunning);
+
+                // When stopped: zero live hashrate so stale log values are not shown
+                if (!isRunning) {
+                    data.hashrate     = 0;
+                    data.cpu_hashrate = 0;
+                    data.gpu_hashrate = 0;
+                }
+
+                setCachedMetrics(data);
+                const prevAccepted = lastAccepted;
+                const prevRejected = lastRejected;
+                // Render failures must NOT flip the badge to "Offline" — online state
+                // is already decided above from /status. Isolate any render error.
+                try { applyMetrics(data); } catch (rErr) { console.error('render error (non-fatal, miner is online):', rErr); }
+
+                // Only log share events when miner is actually running
+                if (isRunning) {
+                    if (data.accepted > prevAccepted) {
+                        addLog(`Share accepted! (${data.accepted} total)`, 'share');
+                        lastShareTimestamp = Date.now();
+                        document.getElementById('lastShareTime').textContent = new Date().toLocaleTimeString();
+                        refreshLastShareAge();
+                    }
+                    if (data.rejected > prevRejected) addLog(`Share rejected (${data.rejected} total)`, 'error');
+
+                    // CPU / GPU per-worker share detection
+                    const cpuNow = data.cpu_shares_found || 0;
+                    const gpuNow = data.gpu_shares_found || 0;
+                    if (lastCpuSharesFound === null) {
+                        // First poll — record baseline without logging
+                        lastCpuSharesFound = cpuNow;
+                        lastGpuSharesFound = gpuNow;
+                    } else {
+                        const newCpu = cpuNow - lastCpuSharesFound;
+                        const newGpu = gpuNow - lastGpuSharesFound;
+                        if (newCpu > 0) {
+                            addLog(`CPU: ${newCpu} share${newCpu > 1 ? 's' : ''} found — submitted to pool (${cpuNow} CPU total)`, 'cpu');
+                        }
+                        if (newGpu > 0) {
+                            addLog(`GPU: ${newGpu} share${newGpu > 1 ? 's' : ''} found — submitted to pool (${gpuNow} GPU total)`, 'gpu');
+                        }
+                        lastCpuSharesFound = cpuNow;
+                        lastGpuSharesFound = gpuNow;
+                    }
+                }
+                lastRejected = data.rejected;
+                hashrateHistory.push({ time: Date.now(), total: data.hashrate, cpu: data.cpu_hashrate || 0, gpu: data.gpu_hashrate || 0 });
+                if (hashrateHistory.length > MAX_CHART_POINTS) hashrateHistory = hashrateHistory.slice(-MAX_CHART_POINTS);
+                drawChart();
+            } catch (e) {
+                setOnline(false, 'Offline');
+                const cached = getCachedMetrics();
+                if (cached) { try { applyMetrics(cached); } catch {} }
+            }
+        }
+
+        // ── Config modal ────────────────────────────────────────────
+
+        let logRefreshTimer  = null;
+        let pendingStartMode = null;
+
+        function setStartMode(mode) {
+            pendingStartMode = mode;
+            document.getElementById('smService').classList.toggle('active', mode === 'service');
+            document.getElementById('smLogin').classList.toggle('active', mode === 'login');
+            document.getElementById('smManual').classList.toggle('active', mode === 'manual');
+            const hint = document.getElementById('startModeHint');
+            if (mode === 'login') {
+                hint.textContent = 'Miner starts when you log in. Logs button opens a terminal window.';
+                hint.style.color = 'hsl(45,100%,60%)';
+            } else if (mode === 'manual') {
+                hint.textContent = 'Miner will not start automatically. Use the Start button or desktop shortcut whenever you want to mine.';
+                hint.style.color = 'hsl(210,80%,65%)';
+            } else {
+                hint.textContent = 'Miner starts at boot as a system service. Logs viewed via inline modal.';
+                hint.style.color = 'var(--text-dim)';
+            }
+        }
+
+        async function switchMode() {
+            if (!pendingStartMode) return;
+            const btn  = document.getElementById('btnSwitchMode');
+            const hint = document.getElementById('startModeHint');
+            btn.disabled = true; btn.textContent = 'Switching...';
+            try {
+                const resp = await fetch(`${CONTROL_URL}/switch-mode`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: pendingStartMode }),
+                    signal: AbortSignal.timeout(10000)
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    startMode = data.mode;
+                    if (data.warn) {
+                        hint.style.color = 'hsl(45,100%,60%)';
+                        hint.textContent = '⚠ Config saved but task re-registration failed: ' + data.warn;
+                    } else if (data.mode === 'manual') {
+                        hint.style.color = 'hsl(142,72%,50%)';
+                        hint.textContent = '✓ Switched to Manual mode. Miner will not start automatically.';
+                    } else if (data.requires_logoff) {
+                        hint.style.color = 'hsl(142,72%,50%)';
+                        hint.textContent = '✓ Switched to Login mode. Log off and back in to activate.';
+                    } else {
+                        hint.style.color = 'hsl(142,72%,50%)';
+                        hint.textContent = '✓ Switched to System Service mode. Takes effect at next reboot.';
+                    }
+                } else {
+                    hint.style.color = '#f87171';
+                    hint.textContent = data.error || 'Switch failed.';
+                }
+            } catch (e) {
+                hint.style.color = '#f87171';
+                hint.textContent = 'Control server unreachable.';
+            }
+            btn.disabled = false; btn.textContent = 'Apply';
+        }
+
+        async function openLogs() {
+            if (startMode === 'login') {
+                try {
+                    const r = await fetch(`${CONTROL_URL}/open-logs`, { signal: AbortSignal.timeout(3000) });
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.terminal) return;
+                    }
+                } catch (e) {}
+            }
+            document.getElementById('logModal').classList.add('open');
+            await refreshLogs();
+            if (logRefreshTimer) clearInterval(logRefreshTimer);
+            logRefreshTimer = setInterval(refreshLogs, 3000);
+        }
+
+        function closeLogs() {
+            document.getElementById('logModal').classList.remove('open');
+            if (logRefreshTimer) { clearInterval(logRefreshTimer); logRefreshTimer = null; }
+        }
+
+        async function refreshLogs() {
+            try {
+                const resp = await fetch(`${CONTROL_URL}/logs?tail=200`, { signal: AbortSignal.timeout(4000) });
+                if (!resp.ok) throw new Error('status ' + resp.status);
+                const lines = await resp.json();
+                const con = document.getElementById('logModalConsole');
+                const atBottom = con.scrollHeight - con.scrollTop <= con.clientHeight + 60;
+                con.innerHTML = lines.map(line => {
+                    const esc = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    if (line.includes('[DagTech GPU]'))                    return `<span style="color:hsl(270,80%,65%)">${esc}</span>`;
+                    if (line.includes('[DagTech CPU]'))                    return `<span style="color:hsl(142,72%,50%)">${esc}</span>`;
+                    if (/SHARE FOUND|ACCEPTED/i.test(line))               return `<span style="color:hsl(185,72%,55%)">${esc}</span>`;
+                    if (/ERROR|error|failed|FAILED/i.test(line))           return `<span style="color:#f87171">${esc}</span>`;
+                    if (/WARN|warn/i.test(line))                           return `<span style="color:hsl(45,100%,60%)">${esc}</span>`;
+                    if (/Starting miner|Control server|Watchdog/i.test(line)) return `<span style="color:var(--blue-light)">${esc}</span>`;
+                    return `<span style="color:var(--text-dim)">${esc}</span>`;
+                }).join('\n');
+                document.getElementById('logTimestamp').textContent = 'Updated ' + new Date().toLocaleTimeString();
+                if (atBottom) con.scrollTop = con.scrollHeight;
+            } catch (e) {
+                document.getElementById('logModalConsole').innerHTML =
+                    '<span style="color:#f87171">Could not fetch log from control server.</span>';
+            }
+        }
+
+        function updateIntensityHint(val) {
+            val = parseInt(val);
+            const el = document.getElementById('intensityHint');
+            if (!el) return;
+
+            // Actual V-buffer = 2^(1 + intensity/100*6) GB
+            const vbufGB = Math.pow(2, 1 + val / 100 * 6);
+            let vramStr;
+            if      (vbufGB >= 100) vramStr = vbufGB.toFixed(0) + ' GB V-buffer';
+            else if (vbufGB >= 10)  vramStr = vbufGB.toFixed(1) + ' GB V-buffer';
+            else                    vramStr = vbufGB.toFixed(2) + ' GB V-buffer';
+
+            let color, badge, desc, rec;
+            if (val <= 30) {
+                color  = 'hsl(142, 72%, 50%)';
+                badge  = '&#9679; Conservative';
+                desc   = 'Low GPU load — reduced hashrate but runs cool and quiet.';
+                rec    = 'Good for: GPUs with 4–8 GB VRAM, shared workstations, or leaving headroom for other GPU tasks.';
+            } else if (val <= 60) {
+                color  = 'hsl(210, 80%, 65%)';
+                badge  = '&#9679; Balanced';
+                desc   = 'Moderate GPU load — solid hashrate without pushing thermals.';
+                rec    = 'Good for: 8–24 GB GPUs and 24/7 rigs where stability matters as much as speed.';
+            } else if (val <= 85) {
+                color  = 'hsl(45, 100%, 60%)';
+                badge  = '&#9679; Performance';
+                desc   = 'High GPU load — maximum hashrate for high-VRAM GPUs. Monitor temperatures.';
+                rec    = 'Requires 24 GB+ VRAM. Reduce if you see crashes or GPU errors in logs.';
+            } else {
+                color  = '#f87171';
+                badge  = '&#9679; Maximum';
+                desc   = 'Full GPU load — highest possible hashrate, maximum heat and power draw.';
+                rec    = 'Requires 64 GB+ VRAM (datacenter GPUs). Will crash or OOM on typical consumer cards.';
+            }
+            // Per-GPU recommendation row
+            let recRow = '';
+            if (gpuRecIntensity >= 0 && val === gpuRecIntensity) {
+                const vramLabel = gpuVramMb > 0 ? ` (${gpuVramMb} MB VRAM)` : ' (VRAM unknown)';
+                recRow = `<span style="display:inline-block;margin-top:5px;padding:3px 8px;border-radius:4px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:hsl(142,72%,55%);font-weight:700;font-size:11px;">&#10003; Recommended for your GPU${vramLabel}</span><br>`;
+            } else if (gpuRecIntensity >= 0) {
+                recRow = `<span style="color:var(--text-dim);font-size:10px;">Your GPU&#39;s recommended setting: ${gpuRecIntensity}${gpuVramMb > 0 ? ' ('+gpuVramMb+' MB VRAM)' : ''}</span><br>`;
+            }
+            el.innerHTML =
+                `<span style="color:${color};font-weight:600;">${badge}</span>` +
+                `<span style="color:var(--text-dim);margin-left:8px;">&#128190; ${vramStr}</span><br>` +
+                recRow +
+                `<span style="color:var(--text-secondary);">${desc}</span><br>` +
+                `<span style="color:var(--text-dim);">${rec}</span>`;
+        }
+
+        function updateThrottleHint(val) {
+            val = parseInt(val);
+            const el = document.getElementById('throttleHint');
+            if (!el) return;
+            let color, badge, usage, desc, rec;
+            if (val <= 30) {
+                color  = 'hsl(142, 72%, 50%)';
+                badge  = '&#9679; Very Cool';
+                usage  = '~' + val + '% GPU utilisation';
+                desc   = 'Heavy duty-cycle throttle — GPU spends most of its time idle between kernels.';
+                rec    = 'Good for: very hot environments, poor airflow, or running mining alongside other GPU workloads.';
+            } else if (val <= 60) {
+                color  = 'hsl(195, 80%, 60%)';
+                badge  = '&#9679; Throttled';
+                usage  = '~' + val + '% GPU utilisation';
+                desc   = 'Moderate throttle — reduces GPU temperature meaningfully while keeping decent hashrate.';
+                rec    = 'Recommended starting point for temperature management. Adjust up or down to find your GPU\'s sweet spot.';
+            } else if (val <= 85) {
+                color  = 'hsl(45, 100%, 60%)';
+                badge  = '&#9679; Lightly Throttled';
+                usage  = '~' + val + '% GPU utilisation';
+                desc   = 'Small duty-cycle gap — takes the edge off peak temperatures without much hashrate loss.';
+                rec    = 'Good if GPUs are running hot but not critical. Lower further if temps are still too high.';
+            } else if (val < 100) {
+                color  = '#fb923c';
+                badge  = '&#9679; Near Full';
+                usage  = '~' + val + '% GPU utilisation';
+                desc   = 'Minimal throttle — barely any rest between kernels. Temperatures will be close to unthrottled.';
+                rec    = 'Only useful as a fine-tuning step. Drop to 70–80% for real temperature reduction.';
+            } else {
+                color  = '#f87171';
+                badge  = '&#9679; Unthrottled';
+                usage  = '100% GPU utilisation';
+                desc   = 'No sleep between kernel launches — GPU runs flat out at maximum power and heat.';
+                rec    = 'Default. Lower this slider if your GPUs are running too hot.';
+            }
+            el.innerHTML =
+                `<span style="color:${color};font-weight:600;">${badge}</span>` +
+                `<span style="color:var(--text-dim);margin-left:8px;">&#128293; ${usage}</span><br>` +
+                `<span style="color:var(--text-secondary);">${desc}</span><br>` +
+                `<span style="color:var(--text-dim);">${rec}</span>`;
+        }
+
+        function updateRecBar() {
+            const bar = document.getElementById('intensityRecBar');
+            if (!bar) return;
+            if (gpuRecIntensity < 0) { bar.style.width = '0%'; return; }
+            // Align bar tip with thumb centre: width = rec% + (8 - rec*0.16)px
+            // Derived from: 8px + (rec/100)*(containerWidth - 16px)
+            const adj = (8 - gpuRecIntensity * 0.16).toFixed(2);
+            bar.style.width = 'calc(' + gpuRecIntensity + '% + ' + adj + 'px)';
+        }
+
+        function setMode(mode) {
+            ['cpu','gpu','both'].forEach(m => {
+                const btn = document.getElementById('mode' + m.charAt(0).toUpperCase() + m.slice(1));
+                if (btn) btn.classList.toggle('active', m === mode);
+            });
+            const gpuOff = (mode === 'cpu');
+            const cpuOff = (mode === 'gpu');
+            const gpuSec = document.getElementById('gpuControlsSection');
+            const cpuSec = document.getElementById('cpuControlsSection');
+            if (gpuSec) {
+                gpuSec.style.opacity       = gpuOff ? '0.35' : '';
+                gpuSec.style.pointerEvents = gpuOff ? 'none'  : '';
+            }
+            if (cpuSec) {
+                cpuSec.style.opacity       = cpuOff ? '0.35' : '';
+                cpuSec.style.pointerEvents = cpuOff ? 'none'  : '';
+            }
+        }
+
+        // ── Pool profiles ─────────────────────────────────────────────────────────
+        // Built-in presets are always shown first and cannot be deleted.
+        // User-saved profiles are stored in localStorage and are fully editable.
+        const _BUILTIN_PROFILES = [
+            { name: 'DagTech',    host: 'excalibur.dagtech.network', port: '3335', password: '',     worker: '' },
+            { name: 'DVDMining',  host: 'dvdmining.ddns.net',        port: '3334', password: '1234', worker: '' },
+            { name: 'Local Node', host: '127.0.0.1',                 port: '3334', password: '1234', worker: '' },
+        ];
+        const _POOL_PROFILES_KEY = 'dagtech_pool_profiles';
+
+        function _getProfiles() {
+            try { return JSON.parse(localStorage.getItem(_POOL_PROFILES_KEY) || '[]'); }
+            catch { return []; }
+        }
+        function _saveProfiles(arr) {
+            localStorage.setItem(_POOL_PROFILES_KEY, JSON.stringify(arr));
+        }
+        function renderPoolProfiles() {
+            const sel = document.getElementById('poolProfileSelect');
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">— select a profile —</option>';
+
+            // Built-in presets (value prefix: b:)
+            const grpBuiltin = document.createElement('optgroup');
+            grpBuiltin.label = 'Built-in';
+            _BUILTIN_PROFILES.forEach((p, i) => {
+                const o = document.createElement('option');
+                o.value = `b:${i}`;
+                o.textContent = `${p.name}  (${p.host}:${p.port})`;
+                grpBuiltin.appendChild(o);
+            });
+            sel.appendChild(grpBuiltin);
+
+            // User-saved profiles (value prefix: u:)
+            const saved = _getProfiles();
+            if (saved.length) {
+                const grpSaved = document.createElement('optgroup');
+                grpSaved.label = 'Saved';
+                saved.forEach((p, i) => {
+                    const o = document.createElement('option');
+                    o.value = `u:${i}`;
+                    o.textContent = `${p.name}  (${p.host}:${p.port})`;
+                    grpSaved.appendChild(o);
+                });
+                sel.appendChild(grpSaved);
+            }
+
+            if (prev && sel.querySelector(`option[value="${prev}"]`)) sel.value = prev;
+        }
+        function _resolveProfile(val) {
+            if (!val) return null;
+            if (val.startsWith('b:')) return _BUILTIN_PROFILES[parseInt(val.slice(2))] || null;
+            if (val.startsWith('u:')) return _getProfiles()[parseInt(val.slice(2))] || null;
+            // legacy numeric values from before prefixes
+            return _getProfiles()[parseInt(val)] || null;
+        }
+        function loadPoolProfile() {
+            const val = document.getElementById('poolProfileSelect').value;
+            const p = _resolveProfile(val);
+            if (!p) return;
+            document.getElementById('cfgPoolHost').value = p.host    || '';
+            document.getElementById('cfgPoolPort').value = p.port    || '';
+            document.getElementById('cfgWorker').value   = p.worker  || '';
+            document.getElementById('cfgPassword').value = p.password|| '';
+        }
+        function savePoolProfile() {
+            const name = document.getElementById('poolProfileName').value.trim();
+            if (!name) { document.getElementById('poolProfileName').focus(); return; }
+            const host = document.getElementById('cfgPoolHost').value.trim();
+            if (!host) { document.getElementById('cfgPoolHost').focus(); return; }
+            const entry = {
+                name,
+                host,
+                port:     document.getElementById('cfgPoolPort').value.trim(),
+                worker:   document.getElementById('cfgWorker').value.trim(),
+                password: document.getElementById('cfgPassword').value.trim(),
+            };
+            const profiles = _getProfiles();
+            const existing = profiles.findIndex(p => p.name === name);
+            if (existing >= 0) profiles[existing] = entry;
+            else profiles.push(entry);
+            _saveProfiles(profiles);
+            renderPoolProfiles();
+            document.getElementById('poolProfileName').value = '';
+            const newIdx = _getProfiles().findIndex(p => p.name === name);
+            if (newIdx >= 0) document.getElementById('poolProfileSelect').value = `u:${newIdx}`;
+        }
+        function deletePoolProfile() {
+            const val = document.getElementById('poolProfileSelect').value;
+            if (!val || val.startsWith('b:')) {
+                alert('Built-in profiles cannot be deleted.');
+                return;
+            }
+            const idx = parseInt(val.slice(2));
+            const profiles = _getProfiles();
+            if (!profiles[idx]) return;
+            if (!confirm(`Delete profile "${profiles[idx].name}"?`)) return;
+            profiles.splice(idx, 1);
+            _saveProfiles(profiles);
+            renderPoolProfiles();
+        }
+
+        // ── GPU device picker helpers ────────────────────────────────────────────
+
+        function _populateGpuDeviceList(gpus, currentDevice) {
+            const list    = document.getElementById('gpuDeviceList');
+            const countEl = document.getElementById('gpuDetectedCount');
+            if (!list) return;
+
+            if (!gpus || gpus.length === 0) {
+                list.innerHTML = '<span style="font-size:12px;color:var(--text-dim);">No GPUs detected</span>';
+                if (countEl) countEl.textContent = '';
+                return;
+            }
+
+            if (countEl) countEl.textContent = `${gpus.length} GPU${gpus.length > 1 ? 's' : ''} detected`;
+
+            // Determine which device indices are currently enabled
+            const enabledSet = new Set();
+            const dev = (currentDevice || '').trim();
+            if (!dev || dev === 'all') {
+                gpus.forEach(g => enabledSet.add(g.index));
+            } else {
+                dev.split(',').forEach(d => { const n = parseInt(d); if (!isNaN(n)) enabledSet.add(n); });
+            }
+
+            if (gpus.length === 1) {
+                // Single GPU — informational display only, no checkbox needed
+                const g = gpus[0];
+                const vramStr = g.vram_mb ? ` · ${Math.round(g.vram_mb / 1024)} GB VRAM` : '';
+                const recStr  = g.rec_intensity >= 0 ? ` · rec. intensity: ${g.rec_intensity}` : '';
+                list.innerHTML = `<div style="font-size:12px;color:var(--text-primary);padding:5px 8px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid var(--border-color);">
+                    GPU 0: <strong>${g.name || 'Unknown GPU'}</strong>
+                    <span style="color:var(--text-dim);">${vramStr}${recStr}</span>
+                </div>`;
+                return;
+            }
+
+            // Multiple GPUs — checkboxes
+            list.innerHTML = gpus.map(g => {
+                const checked  = enabledSet.has(g.index) ? 'checked' : '';
+                const vramStr  = g.vram_mb ? `${Math.round(g.vram_mb / 1024)} GB` : '';
+                const recStr   = g.rec_intensity >= 0 ? `rec. ${g.rec_intensity}` : '';
+                return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid var(--border-color);">
+                    <input type="checkbox" data-gpu-index="${g.index}" ${checked}
+                           style="accent-color:var(--gpu-primary);width:14px;height:14px;flex-shrink:0;cursor:pointer;">
+                    <span style="flex:1;min-width:0;font-size:12px;">
+                        GPU ${g.index}: <strong>${g.name || 'Unknown GPU'}</strong>
+                        ${vramStr ? `<span style="color:var(--text-dim);margin-left:6px;">${vramStr} VRAM</span>` : ''}
+                        ${recStr  ? `<span style="font-size:10px;color:hsl(142,72%,55%);margin-left:6px;">${recStr}</span>` : ''}
+                    </span>
+                </label>`;
+            }).join('');
+        }
+
+        function _getGpuDeviceValue() {
+            const allBoxes = Array.from(document.querySelectorAll('#gpuDeviceList input[data-gpu-index]'));
+            if (allBoxes.length <= 1) return '0';          // single GPU or undetected
+            const checked = allBoxes.filter(el => el.checked).map(el => el.dataset.gpuIndex);
+            if (checked.length === 0) return '0';           // nothing checked — keep device 0
+            if (checked.length === allBoxes.length) return 'all';
+            return checked.join(',');
+        }
+
+        async function openConfig() {
+            document.getElementById('configStatus').textContent = '';
+            document.getElementById('configStatus').style.color = '';
+            document.getElementById('configModal').classList.add('open');
+            renderPoolProfiles();
+            // Fetch config and GPU list concurrently
+            const [cfgResult, gpuResult] = await Promise.allSettled([
+                fetch(`${CONTROL_URL}/config`,    { signal: AbortSignal.timeout(4000) }),
+                fetch(`${CONTROL_URL}/gpu-stats`, { signal: AbortSignal.timeout(6000) })
+            ]);
+            try {
+                if (cfgResult.status !== 'fulfilled' || !cfgResult.value.ok) throw new Error();
+                const cfg = await cfgResult.value.json();
+                document.getElementById('cfgWallet').value      = cfg.WALLET        || '';
+                document.getElementById('cfgPoolHost').value    = cfg.POOL_HOST     || '';
+                document.getElementById('cfgPoolPort').value    = cfg.POOL_PORT     || '';
+                document.getElementById('cfgWorker').value      = cfg.WORKER_NAME   || '';
+                document.getElementById('cfgPassword').value    = cfg.POOL_PASSWORD || '';
+                document.getElementById('cfgThreads').value     = cfg.THREADS       || '';
+                document.getElementById('cfgCpuLimit').value    = cfg.CPU_LIMIT     || '100';
+                document.getElementById('cfgMetricsPort').value = cfg.METRICS_PORT  || '8882';
+                document.getElementById('cfgDashPort').value    = '8883';
+                gpuRecIntensity = cfg.GPU_REC_INTENSITY ? parseInt(cfg.GPU_REC_INTENSITY) : -1;
+                gpuVramMb       = cfg.GPU_VRAM_MB      ? parseInt(cfg.GPU_VRAM_MB)       : 0;
+                // Move the datalist tick mark to the per-GPU recommended position
+                const tickEl = document.getElementById('intensityTickRec');
+                if (tickEl) tickEl.value = gpuRecIntensity >= 0 ? gpuRecIntensity : 80;
+                updateRecBar();
+                const intensity = cfg.GPU_INTENSITY || '80';
+                document.getElementById('cfgGpuIntensity').value = intensity;
+                document.getElementById('intensityVal').textContent = intensity;
+                const iVal = parseInt(intensity);
+                document.getElementById('intensityRecBadge').style.display =
+                    (gpuRecIntensity >= 0 && iVal === gpuRecIntensity) ? 'inline' : 'none';
+                updateIntensityHint(iVal);
+                const throttle = cfg.GPU_THROTTLE || '100';
+                document.getElementById('cfgGpuThrottle').value = throttle;
+                document.getElementById('throttleVal').textContent = throttle + '%';
+                updateThrottleHint(throttle);
+                setMode(cfg.MINING_MODE || 'both');
+                setStartMode(startMode);
+
+                // Populate GPU device picker from /gpu-stats
+                if (gpuResult.status === 'fulfilled' && gpuResult.value.ok) {
+                    const gd = await gpuResult.value.json();
+                    _populateGpuDeviceList(gd.gpus || [], gd.gpu_device || cfg.GPU_DEVICE || '0');
+                } else {
+                    // Fallback: show GPU_DEVICE from config as plain text
+                    const devList = document.getElementById('gpuDeviceList');
+                    if (devList) devList.innerHTML = '<span style="font-size:12px;color:var(--text-dim);">GPU detection unavailable</span>';
+                }
+            } catch (e) {
+                const s = document.getElementById('configStatus');
+                s.textContent = 'Could not load config from control server.';
+                s.style.color = '#f87171';
+            }
+        }
+
+        function closeConfig() { document.getElementById('configModal').classList.remove('open'); }
+
+        function openUpdate() {
+            document.getElementById('updCurrentVer').textContent = '—';
+            document.getElementById('updLatestVer').textContent = 'Checking…';
+            document.getElementById('updStatus').textContent = 'Fetching version info…';
+            document.getElementById('updStatus').className = 'update-status';
+            document.getElementById('btnApplyUpdate').style.display = 'none';
+            document.getElementById('btnRestartServer').style.display = 'none';
+            document.getElementById('updateModal').classList.add('open');
+            checkForUpdate();
+        }
+        function closeUpdate() { document.getElementById('updateModal').classList.remove('open'); }
+
+        async function checkForUpdate() {
+            const btnU = document.getElementById('btnUpdate');
+            btnU.classList.add('checking');
+            try {
+                const resp = await fetch(`${CONTROL_URL}/update-check`, { signal: AbortSignal.timeout(10000) });
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+                document.getElementById('updCurrentVer').textContent = data.current || '—';
+                const latEl = document.getElementById('updLatestVer');
+                latEl.textContent = data.latest || '—';
+                if (data.up_to_date) {
+                    latEl.className = 'update-val same-ver';
+                    document.getElementById('updStatus').textContent = '✓ You are on the latest version.';
+                    document.getElementById('updStatus').className = 'update-status ok';
+                    document.getElementById('btnApplyUpdate').style.display = 'none';
+                } else {
+                    latEl.className = 'update-val new-ver';
+                    document.getElementById('updStatus').textContent = `New version available: ${data.current} → ${data.latest}`;
+                    document.getElementById('updStatus').className = 'update-status';
+                    document.getElementById('btnApplyUpdate').style.display = '';
+                }
+            } catch(e) {
+                document.getElementById('updStatus').textContent = `Error checking for updates: ${e.message}`;
+                document.getElementById('updStatus').className = 'update-status err';
+            } finally {
+                btnU.classList.remove('checking');
+            }
+        }
+
+        async function applyUpdate() {
+            const btn = document.getElementById('btnApplyUpdate');
+            btn.disabled = true; btn.textContent = '↓ Downloading…';
+            document.getElementById('updStatus').textContent = 'Downloading update — miner will briefly stop…';
+            document.getElementById('updStatus').className = 'update-status';
+            try {
+                const resp = await fetch(`${CONTROL_URL}/update`, { method: 'POST', signal: AbortSignal.timeout(120000) });
+                const data = await resp.json();
+                if (!data.ok && data.error) throw new Error(data.error);
+                if (data.status === 'up_to_date') {
+                    document.getElementById('updStatus').textContent = '✓ Already on the latest version.';
+                    document.getElementById('updStatus').className = 'update-status ok';
+                } else {
+                    let msg = `✓ Updated: ${data.from} → ${data.to}`;
+                    if (data.errors) msg += `\n⚠ Some files failed: ${data.errors}`;
+                    document.getElementById('updStatus').textContent = msg;
+                    document.getElementById('updStatus').className = data.errors ? 'update-status' : 'update-status ok';
+                    document.getElementById('updCurrentVer').textContent = data.to;
+                    document.getElementById('updLatestVer').className = 'update-val same-ver';
+                    document.getElementById('btnApplyUpdate').style.display = 'none';
+                    if (data.restart_required) {
+                        document.getElementById('updStatus').textContent += '\nRestarting control server to apply update…';
+                        setTimeout(restartControlServer, 800);
+                    }
+                }
+            } catch(e) {
+                document.getElementById('updStatus').textContent = `Update failed: ${e.message}`;
+                document.getElementById('updStatus').className = 'update-status err';
+            } finally {
+                btn.disabled = false; btn.textContent = '↓ Apply Update';
+            }
+        }
+
+        async function restartControlServer() {
+            const btn = document.getElementById('btnRestartServer');
+            btn.disabled = true; btn.textContent = '↺ Restarting…';
+            document.getElementById('updStatus').textContent = 'Restarting control server…';
+            document.getElementById('updStatus').className = 'update-status';
+            try {
+                await fetch(`${CONTROL_URL}/restart-server`, { method: 'POST', signal: AbortSignal.timeout(5000) });
+            } catch(_) { /* expected — server restarts */ }
+            // Poll until the server comes back
+            document.getElementById('updStatus').textContent = 'Waiting for control server to restart…';
+            let attempts = 0;
+            const poll = setInterval(async () => {
+                attempts++;
+                try {
+                    const r = await fetch(`${CONTROL_URL}/status`, { signal: AbortSignal.timeout(2000) });
+                    if (r.ok) {
+                        clearInterval(poll);
+                        document.getElementById('updStatus').textContent = '✓ Restarted — reloading dashboard…';
+                        document.getElementById('updStatus').className = 'update-status ok';
+                        document.getElementById('btnRestartServer').style.display = 'none';
+                        btn.disabled = false; btn.textContent = '↺ Restart Control Server';
+                        setTimeout(() => window.location.reload(), 1500);
+                    }
+                } catch(_) {}
+                if (attempts > 30) {
+                    clearInterval(poll);
+                    document.getElementById('updStatus').textContent = 'Server did not respond in 30s — check manually.';
+                    document.getElementById('updStatus').className = 'update-status err';
+                    btn.disabled = false; btn.textContent = '↺ Restart Control Server';
+                }
+            }, 1000);
+        }
+
+        async function saveConfig() {
+            const btn    = document.getElementById('btnSaveConfig');
+            const status = document.getElementById('configStatus');
+            status.textContent = '';
+
+            // Validate wallet before saving
+            const walletInput = document.getElementById('cfgWallet');
+            const walletVal   = walletInput.value.trim();
+            if (!walletVal) {
+                walletInput.style.outline = '2px solid #f87171';
+                walletInput.focus();
+                status.style.color   = '#f87171';
+                status.textContent   = 'Wallet address is required — mining will not work without it.';
+                setTimeout(() => { walletInput.style.outline = ''; }, 3000);
+                return;
+            }
+            if (!/^0x[0-9a-fA-F]{40}$/.test(walletVal)) {
+                walletInput.style.outline = '2px solid #fb923c';
+                walletInput.focus();
+                status.style.color   = '#fb923c';
+                status.textContent   = 'Wallet should be 0x followed by 40 hex characters.';
+                setTimeout(() => { walletInput.style.outline = ''; }, 3000);
+                return;
+            }
+
+            btn.disabled = true; btn.textContent = 'Saving...';
+
+            const mode = document.querySelector('.mode-btn.active')?.dataset.mode || 'both';
+            const cfg = {
+                WALLET:        walletVal,
+                POOL_HOST:     document.getElementById('cfgPoolHost').value.trim(),
+                POOL_PORT:     document.getElementById('cfgPoolPort').value.trim(),
+                WORKER_NAME:   document.getElementById('cfgWorker').value.trim(),
+                POOL_PASSWORD: document.getElementById('cfgPassword').value.trim(),
+                THREADS:       document.getElementById('cfgThreads').value.trim(),
+                CPU_LIMIT:     document.getElementById('cfgCpuLimit').value.trim() || '100',
+                GPU_ENABLED:   mode === 'cpu' ? '0' : '1',
+                GPU_INTENSITY: document.getElementById('cfgGpuIntensity').value.trim(),
+                GPU_THROTTLE:  document.getElementById('cfgGpuThrottle').value.trim(),
+                GPU_DEVICE:    _getGpuDeviceValue(),
+                MINING_MODE:   mode,
+            };
+
+            try {
+                const resp = await fetch(`${CONTROL_URL}/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cfg),
+                    signal: AbortSignal.timeout(8000)
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    status.style.color = '#4ade80';
+                    status.textContent = data.restarted ? 'Saved. Miner restarting...' : 'Saved. Start miner to apply.';
+                    setTimeout(closeConfig, 1800);
+                } else {
+                    status.style.color = '#f87171';
+                    status.textContent = data.error || 'Save failed.';
+                }
+            } catch (e) {
+                status.style.color = '#f87171';
+                status.textContent = 'Control server unreachable.';
+            }
+            btn.disabled = false; btn.textContent = 'Save & Restart';
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeConfig(); closeLogs(); } });
+
+        // Initialize
+        window.addEventListener('resize', drawChart);
+        drawChart();
+        fetchMetrics();
+        setInterval(fetchMetrics,  POLL_INTERVAL);
+        // Sysinfo polls WMI (CPU load takes ~1s per call) — stagger it so it
+        // never fires at the same time as fetchMetrics and blocks the /status check.
+        setTimeout(() => { fetchSysinfo(); setInterval(fetchSysinfo, 15000); }, 3000);
+        setInterval(refreshLastShareAge, 1000);
+
+        addLog('DagTech GPU Dashboard v1.0.0 - dagtech.network');
+        addLog('Polling miner metrics every 5 seconds...');
+    </script>
+</body>
+</html>
